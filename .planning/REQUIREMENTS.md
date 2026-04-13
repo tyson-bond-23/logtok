@@ -84,31 +84,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DET-01 | — | Pending |
-| DET-02 | — | Pending |
-| DET-03 | — | Pending |
-| DET-04 | — | Pending |
-| DET-05 | — | Pending |
-| TOK-01 | — | Pending |
-| TOK-02 | — | Pending |
-| TOK-03 | — | Pending |
-| TOK-04 | — | Pending |
-| TOK-05 | — | Pending |
-| TOK-06 | — | Pending |
-| DIA-01 | — | Pending |
-| DIA-02 | — | Pending |
-| DIA-03 | — | Pending |
-| DIA-04 | — | Pending |
-| DIA-05 | — | Pending |
-| INF-01 | — | Pending |
-| INF-02 | — | Pending |
-| INF-03 | — | Pending |
+| DET-01 | Phase 2 | Pending |
+| DET-02 | Phase 2 | Pending |
+| DET-03 | Phase 2 | Pending |
+| DET-04 | Phase 2 | Pending |
+| DET-05 | Phase 2 | Pending |
+| TOK-01 | Phase 1 | Pending |
+| TOK-02 | Phase 1 | Pending |
+| TOK-03 | Phase 2 | Pending |
+| TOK-04 | Phase 2 | Pending |
+| TOK-05 | Phase 1 | Pending |
+| TOK-06 | Phase 1 | Pending |
+| DIA-01 | Phase 3 | Pending |
+| DIA-02 | Phase 3 | Pending |
+| DIA-03 | Phase 3 | Pending |
+| DIA-04 | Phase 3 | Pending |
+| DIA-05 | Phase 3 | Pending |
+| INF-01 | Phase 1 | Pending |
+| INF-02 | Phase 3 | Pending |
+| INF-03 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 19 total
-- Mapped to phases: 0
-- Unmapped: 19
+- Mapped to phases: 19
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-13*
-*Last updated: 2026-04-13 after initial definition*
+*Last updated: 2026-04-13 after roadmap creation*
