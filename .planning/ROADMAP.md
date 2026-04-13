@@ -25,15 +25,15 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Success Criteria** (what must be TRUE):
   1. User can run a single binary that accepts a log file path and outputs tokenized content
   2. The same sensitive value in different locations always produces the same token
-  3. Tokens are visually distinguishable with category prefixes (e.g., `[TOK_IP_001]`, `[TOK_KEY_001]`)
+  3. Tokens are visually distinguishable with category prefixes (e.g., `[IP_001]`, `[KEY_001]`)
   4. User can tokenize both structured JSON logs and unstructured plain text logs
   5. A multi-GB log file processes with bounded memory usage (block-based, not full file load)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Scaffold Rust project, CLI argument parsing, error types
+- [ ] 01-02-PLAN.md — Detection engine, deterministic token map, JSON and plain text tokenization
+- [ ] 01-03-PLAN.md — Block processing pipeline, compaction, progress bar, end-to-end wiring
 
 ### Phase 2: Detection & Token Store
 **Goal**: User can detect all categories of sensitive data (credentials, PII, infrastructure) with configurable rules, preview what would be tokenized, and have mappings persist encrypted across sessions
