@@ -1,5 +1,7 @@
 mod cli;
+mod detector;
 mod error;
+mod tokenizer;
 
 use anyhow::{Context, Result};
 use clap::Parser;
