@@ -31,9 +31,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Scaffold Rust project, CLI argument parsing, error types
-- [ ] 01-02-PLAN.md — Detection engine, deterministic token map, JSON and plain text tokenization
-- [ ] 01-03-PLAN.md — Block processing pipeline, compaction, progress bar, end-to-end wiring
+- [x] 01-01-PLAN.md — Scaffold Rust project, CLI argument parsing, error types
+- [x] 01-02-PLAN.md — Detection engine, deterministic token map, JSON and plain text tokenization
+- [x] 01-03-PLAN.md — Block processing pipeline, compaction, progress bar, end-to-end wiring
 
 ### Phase 2: Detection & Token Store
 **Goal**: User can detect all categories of sensitive data (credentials, PII, infrastructure) with configurable rules, preview what would be tokenized, and have mappings persist encrypted across sessions
