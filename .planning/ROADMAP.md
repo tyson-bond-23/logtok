@@ -44,12 +44,12 @@ Plans:
   2. User can run a dry-run that shows what would be tokenized without modifying anything
   3. User can enable/disable detection categories and add custom regex patterns via configuration
   4. Token mappings are encrypted at rest (AES-256-GCM) and reusable across separate CLI invocations
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Expand detection to 19 categories, config-driven architecture, serializable TokenMap
+- [ ] 02-02-PLAN.md — TOML config module and AES-256-GCM encrypted token store module
+- [ ] 02-03-PLAN.md — CLI integration (--dry-run, --reset-store, --config), processor wiring, end-to-end tests
 
 ### Phase 3: Diagnosis & Delivery
 **Goal**: User can send tokenized logs to Claude for diagnosis, receive de-tokenized results in readable formats, and run the tool on any platform
@@ -75,6 +75,6 @@ Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Tokenization Engine | 0/3 | Not started | - |
-| 2. Detection & Token Store | 0/3 | Not started | - |
+| 1. Core Tokenization Engine | 3/3 | Complete | - |
+| 2. Detection & Token Store | 0/3 | Planning complete | - |
 | 3. Diagnosis & Delivery | 0/3 | Not started | - |
