@@ -1,6 +1,7 @@
 mod cli;
 mod detector;
 mod error;
+mod json_processor;
 mod tokenizer;
 
 use anyhow::{Context, Result};
