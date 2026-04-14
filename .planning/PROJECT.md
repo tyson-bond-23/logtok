@@ -12,7 +12,9 @@ Engineers can diagnose production log errors through Claude Code without reveali
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Tokenize log files with block-based processing for performance — Validated in Phase 1: Core Tokenization Engine
+- [x] Detect and replace credentials (API keys, tokens, passwords, connection strings) — Validated in Phase 1: Core Tokenization Engine (basic patterns; full coverage in Phase 2)
+- [x] Detect and replace infrastructure details (IPs, hostnames, paths, OS info) — Validated in Phase 1: Core Tokenization Engine (basic patterns; full coverage in Phase 2)
 
 ### Active
 
@@ -60,9 +62,9 @@ Engineers can diagnose production log errors through Claude Code without reveali
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Block-based processing architecture | Handle large files efficiently, future-proof for streaming | — Pending |
-| Encrypted local token store | Security requirement — mappings persist across sessions but never leave machine | — Pending |
-| Language choice (Go vs Rust) | Need performance + cross-platform + single binary — research will determine | — Pending |
+| Block-based processing architecture | Handle large files efficiently, future-proof for streaming | Implemented in Phase 1 |
+| Encrypted local token store | Security requirement — mappings persist across sessions but never leave machine | — Pending (Phase 2) |
+| Language choice: Rust | Performance + cross-platform + single binary + memory safety | Decided, implemented in Phase 1 |
 | v1 = file-based only | Prove core tokenize→diagnose→de-tokenize loop before adding connectors | — Pending |
 
 ## Evolution
@@ -83,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-13 after initialization*
+*Last updated: 2026-04-14 after Phase 1 completion*
