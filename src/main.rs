@@ -1,7 +1,9 @@
 mod cli;
+mod compactor;
 mod detector;
 mod error;
 mod json_processor;
+mod processor;
 mod tokenizer;
 
 use anyhow::{Context, Result};
@@ -28,12 +30,13 @@ fn main() -> Result<()> {
         );
     }
 
-    // Placeholder: processing pipeline will be added in Plan 03
-    eprintln!(
-        "logtok: processing {} ({} bytes)",
-        cli.file.display(),
-        metadata.len()
-    );
+    // Run the processing pipeline
+    processor::process_file(
+        &cli.file,
+        cli.output.as_deref(),
+        cli.block_size,
+        cli.quiet,
+    )?;
 
     Ok(())
 }
