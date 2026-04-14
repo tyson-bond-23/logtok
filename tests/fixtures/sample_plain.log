@@ -1,0 +1,20 @@
+2024-01-15 10:23:45 INFO Server started on 192.168.1.100:8080
+2024-01-15 10:23:46 INFO Connected to db-primary.internal:5432
+2024-01-15 10:23:46 INFO Connected to db-primary.internal:5432
+2024-01-15 10:23:46 INFO Connected to db-primary.internal:5432
+2024-01-15 10:23:47 DEBUG Loading config from /etc/app/config/production.yml
+2024-01-15 10:23:48 INFO API key validated: api_key=sk_live_abc123def456xyz789
+2024-01-15 10:23:49 INFO User login: admin@example.com from 10.0.0.55
+2024-01-15 10:23:50 WARN Slow query to db-replica.internal took 2300ms
+2024-01-15 10:23:51 ERROR Connection refused to https://api.internal.corp.com/v2/health
+2024-01-15 10:23:51 ERROR Connection refused to https://api.internal.corp.com/v2/health
+2024-01-15 10:23:52 INFO Password reset for user: password=temp_pass_2024!
+2024-01-15 10:23:53 DEBUG Reading cache from /var/cache/app/sessions/active.db
+2024-01-15 10:23:54 INFO Request from 192.168.1.100 to /api/users
+2024-01-15 10:23:55 WARN Certificate expiry for cache-node.private:6379
+2024-01-15 10:23:56 ERROR Auth failed for user@company.org from 172.16.0.42
+2024-01-15 10:23:57 INFO Notification sent to alerts@example.com
+2024-01-15 10:23:57 INFO Notification sent to alerts@example.com
+2024-01-15 10:23:57 INFO Notification sent to alerts@example.com
+2024-01-15 10:23:58 DEBUG Token refresh: bearer=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkw
+2024-01-15 10:23:59 INFO Shutdown complete

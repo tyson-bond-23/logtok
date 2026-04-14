@@ -1,0 +1,12 @@
+{"timestamp":"2024-01-15T10:23:45Z","level":"INFO","message":"Server started","host":"192.168.1.100","port":8080}
+{"timestamp":"2024-01-15T10:23:46Z","level":"INFO","message":"DB connected","server":"db-primary.internal","user":"admin@example.com"}
+{"timestamp":"2024-01-15T10:23:46Z","level":"INFO","message":"DB connected","server":"db-primary.internal","user":"admin@example.com"}
+{"timestamp":"2024-01-15T10:23:47Z","level":"DEBUG","message":"Config loaded","path":"/etc/app/config/production.yml"}
+{"timestamp":"2024-01-15T10:23:48Z","level":"INFO","message":"Auth success","api_key":"sk_live_abc123def456xyz789","client_ip":"10.0.0.55"}
+{"timestamp":"2024-01-15T10:23:49Z","level":"WARN","message":"Slow response","url":"https://api.internal.corp.com/v2/health","latency_ms":2300}
+{"timestamp":"2024-01-15T10:23:50Z","level":"ERROR","message":"Connection failed","target":"cache-node.private","error":"timeout"}
+{"timestamp":"2024-01-15T10:23:51Z","level":"INFO","message":"Password changed","credentials":"password=newpass123!","user":"ops@company.org"}
+{"timestamp":"2024-01-15T10:23:52Z","level":"DEBUG","message":"File read","path":"/var/cache/app/sessions/active.db"}
+{"timestamp":"2024-01-15T10:23:53Z","level":"INFO","message":"Request processed","source_ip":"172.16.0.42","endpoint":"/api/users"}
+{"timestamp":"2024-01-15T10:23:53Z","level":"INFO","message":"Request processed","source_ip":"172.16.0.42","endpoint":"/api/users"}
+{"timestamp":"2024-01-15T10:23:54Z","level":"INFO","message":"Shutdown","host":"app-server.internal"}
