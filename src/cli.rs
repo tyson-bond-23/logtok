@@ -6,7 +6,7 @@ use std::path::PathBuf;
 #[command(name = "logtok", version, about)]
 pub struct Cli {
     /// Path to the log file to tokenize
-    pub file: PathBuf,
+    pub file: Option<PathBuf>,
 
     /// Output file path (default: stdout)
     #[arg(short, long)]
@@ -19,4 +19,16 @@ pub struct Cli {
     /// Suppress progress bar output
     #[arg(short, long)]
     pub quiet: bool,
+
+    /// Preview what would be tokenized without writing output (DET-04)
+    #[arg(long)]
+    pub dry_run: bool,
+
+    /// Reset (delete) the encrypted token store and exit
+    #[arg(long)]
+    pub reset_store: bool,
+
+    /// Path to .logtok.toml config file (overrides discovery)
+    #[arg(long)]
+    pub config: Option<PathBuf>,
 }
