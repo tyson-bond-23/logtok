@@ -23,4 +23,10 @@ pub enum TokeniserError {
 
     #[error("Write error: {0}")]
     WriteError(#[from] std::io::Error),
+
+    #[error("Invalid regex pattern '{pattern}': {source}")]
+    PatternCompileError {
+        pattern: String,
+        source: regex::Error,
+    },
 }
