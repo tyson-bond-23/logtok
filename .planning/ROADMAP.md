@@ -47,9 +47,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Expand detection to 19 categories, config-driven architecture, serializable TokenMap
-- [ ] 02-02-PLAN.md — TOML config module and AES-256-GCM encrypted token store module
-- [ ] 02-03-PLAN.md — CLI integration (--dry-run, --reset-store, --config), processor wiring, end-to-end tests
+- [x] 02-01-PLAN.md — Expand detection to 19 categories, config-driven architecture, serializable TokenMap
+- [x] 02-02-PLAN.md — TOML config module and AES-256-GCM encrypted token store module
+- [x] 02-03-PLAN.md — CLI integration (--dry-run, --reset-store, --config), processor wiring, end-to-end tests
 
 ### Phase 3: Diagnosis & Delivery
 **Goal**: User can send tokenized logs to Claude for diagnosis, receive de-tokenized results in readable formats, and run the tool on any platform
