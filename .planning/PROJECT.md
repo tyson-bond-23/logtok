@@ -15,15 +15,14 @@ Engineers can diagnose production log errors through Claude Code without reveali
 - [x] Tokenize log files with block-based processing for performance — Validated in Phase 1: Core Tokenization Engine
 - [x] Detect and replace credentials (API keys, tokens, passwords, connection strings) — Validated in Phase 1: Core Tokenization Engine (basic patterns; full coverage in Phase 2)
 - [x] Detect and replace infrastructure details (IPs, hostnames, paths, OS info) — Validated in Phase 1: Core Tokenization Engine (basic patterns; full coverage in Phase 2)
+- [x] Detect and replace credentials (API keys, tokens, passwords, connection strings) — Validated in Phase 2: Detection & Token Store (19 categories, Luhn-validated CC, JWT, PEM, CONN)
+- [x] Detect and replace infrastructure details (IPs, hostnames, paths, OS info) — Validated in Phase 2: Detection & Token Store (DNS, ARN, MAC, OS, UUID added)
+- [x] Detect and replace PII (emails, user IDs, names) — Validated in Phase 2: Detection & Token Store (SSN, PHONE, NAME structured matching)
+- [x] Store token mappings in encrypted local store, reusable across sessions — Validated in Phase 2: Detection & Token Store (AES-256-GCM + Argon2id)
+- [x] Detect and replace business logic references (function names, class names, internal URLs) — Validated in Phase 2: Detection & Token Store (config-driven custom patterns)
 
 ### Active
 
-- [ ] Tokenize log files with block-based processing for performance
-- [ ] Detect and replace credentials (API keys, tokens, passwords, connection strings)
-- [ ] Detect and replace infrastructure details (IPs, hostnames, paths, OS info)
-- [ ] Detect and replace business logic references (function names, class names, internal URLs)
-- [ ] Detect and replace PII (emails, user IDs, names)
-- [ ] Store token mappings in encrypted local store, reusable across sessions
 - [ ] Send tokenized logs to Claude via API for diagnosis
 - [ ] Claude Code skill integration for interactive diagnosis
 - [ ] Clipboard/paste output as fallback method
@@ -63,7 +62,7 @@ Engineers can diagnose production log errors through Claude Code without reveali
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | Block-based processing architecture | Handle large files efficiently, future-proof for streaming | Implemented in Phase 1 |
-| Encrypted local token store | Security requirement — mappings persist across sessions but never leave machine | — Pending (Phase 2) |
+| Encrypted local token store | Security requirement — mappings persist across sessions but never leave machine | Implemented in Phase 2 (AES-256-GCM + Argon2id) |
 | Language choice: Rust | Performance + cross-platform + single binary + memory safety | Decided, implemented in Phase 1 |
 | v1 = file-based only | Prove core tokenize→diagnose→de-tokenize loop before adding connectors | — Pending |
 
@@ -85,4 +84,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after Phase 1 completion*
+*Last updated: 2026-04-15 after Phase 2 completion*
