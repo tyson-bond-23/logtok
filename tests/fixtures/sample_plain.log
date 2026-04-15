@@ -17,4 +17,9 @@
 2024-01-15 10:23:57 INFO Notification sent to alerts@example.com
 2024-01-15 10:23:57 INFO Notification sent to alerts@example.com
 2024-01-15 10:23:58 DEBUG Token refresh: bearer=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkw
-2024-01-15 10:23:59 INFO Shutdown complete
+2024-01-15 10:23:59 INFO JWT received: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U
+2024-01-15 10:24:00 INFO Connection string: postgresql://dbuser:secret@db.prod.internal:5432/appdb
+2024-01-15 10:24:01 INFO Server MAC: 00:1A:2B:3C:4D:5E
+2024-01-15 10:24:02 INFO Request ID: 550e8400-e29b-41d4-a716-446655440000
+2024-01-15 10:24:03 INFO OS: Linux 5.15.0-generic
+2024-01-15 10:24:04 INFO Shutdown complete
