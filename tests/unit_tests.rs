@@ -1,5 +1,5 @@
 use logtok::detector::{DetectionConfig, DetectionPatterns, luhn_check};
-use logtok::tokenizer::TokenMap;
+use logtok::tokenizer::{TokenMap, TokenMapData};
 
 // === TokenMap determinism tests ===
 
@@ -445,4 +445,116 @@ fn regression_all_original_categories() {
 
     let path_m = patterns.detect("/var/log/app/server.log");
     assert_eq!(path_m[0].category, "PATH");
+}
+
+// === TokenMap serialization tests (Phase 2 Task 2) ===
+
+#[test]
+fn token_map_serialize_deserialize_roundtrip() {
+    let mut map = TokenMap::new();
+    map.get_or_insert("192.168.1.100", "IP");
+    map.get_or_insert("user@example.com", "EMAIL");
+
+    let data = map.to_data();
+    let json = serde_json::to_string(data).unwrap();
+    let deserialized: TokenMapData = serde_json::from_str(&json).unwrap();
+
+    let restored = TokenMap::from_data(deserialized);
+    assert_eq!(restored.len(), 2);
+}
+
+#[test]
+fn token_map_counter_continuity_after_deserialize() {
+    let mut map = TokenMap::new();
+    map.get_or_insert("192.168.1.1", "IP");
+    map.get_or_insert("192.168.1.2", "IP");
+    map.get_or_insert("192.168.1.3", "IP");
+
+    let data = map.to_data();
+    let json = serde_json::to_string(data).unwrap();
+    let deserialized: TokenMapData = serde_json::from_str(&json).unwrap();
+
+    let mut restored = TokenMap::from_data(deserialized);
+    // Next IP should be IP_004, not IP_001
+    let token = restored.get_or_insert("10.0.0.1", "IP");
+    assert_eq!(token, "[IP_004]");
+}
+
+#[test]
+fn token_map_reverse_map_populated() {
+    let mut map = TokenMap::new();
+    map.get_or_insert("192.168.1.100", "IP");
+
+    let data = map.to_data();
+    assert_eq!(
+        data.token_to_value.get("[IP_001]").map(|s| s.as_str()),
+        Some("192.168.1.100")
+    );
+}
+
+#[test]
+fn token_map_merge_combines_maps() {
+    let mut map1 = TokenMap::new();
+    map1.get_or_insert("192.168.1.1", "IP");
+
+    let mut map2 = TokenMap::new();
+    map2.get_or_insert("10.0.0.1", "IP");
+    map2.get_or_insert("user@example.com", "EMAIL");
+
+    map1.merge(map2.to_data().clone());
+
+    assert_eq!(map1.len(), 3);
+    // Counters should be advanced: next IP should be IP_003
+    let next = map1.get_or_insert("172.16.0.1", "IP");
+    assert_eq!(next, "[IP_003]");
+}
+
+#[test]
+fn token_map_merge_preserves_existing() {
+    let mut map1 = TokenMap::new();
+    let original_token = map1.get_or_insert("192.168.1.1", "IP");
+
+    let mut map2 = TokenMap::new();
+    map2.get_or_insert("192.168.1.1", "IP"); // same value
+
+    map1.merge(map2.to_data().clone());
+
+    // Original token should be preserved, not overwritten
+    let data = map1.to_data();
+    assert_eq!(
+        data.value_to_token.get("192.168.1.1").map(|s| s.as_str()),
+        Some(original_token.as_str())
+    );
+    assert_eq!(map1.len(), 1); // no duplicate
+}
+
+#[test]
+fn token_entry_has_created_at() {
+    let mut map = TokenMap::new();
+    map.get_or_insert("192.168.1.1", "IP");
+
+    let data = map.to_data();
+    let entry = data.entries.get("192.168.1.1").unwrap();
+    assert!(entry.created_at > 0, "created_at should be a Unix timestamp");
+    assert_eq!(entry.category, "IP");
+    assert_eq!(entry.token, "[IP_001]");
+}
+
+#[test]
+fn token_map_purge_expired_removes_old_entries() {
+    let mut map = TokenMap::new();
+    map.get_or_insert("192.168.1.1", "IP");
+
+    // Manually set created_at to the past (1 second ago won't expire with TTL=3600)
+    // Instead, set to 0 (epoch) to guarantee expiration
+    {
+        let data = map.to_data_mut();
+        if let Some(entry) = data.entries.get_mut("192.168.1.1") {
+            entry.created_at = 0; // epoch = always expired
+        }
+    }
+
+    assert_eq!(map.len(), 1);
+    map.purge_expired(1); // TTL of 1 second -- epoch entry is definitely expired
+    assert_eq!(map.len(), 0, "Expired entry should be purged");
 }
