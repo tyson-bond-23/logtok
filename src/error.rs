@@ -29,4 +29,10 @@ pub enum TokeniserError {
         pattern: String,
         source: regex::Error,
     },
+
+    #[error("Config error in {path}: {message}")]
+    ConfigError { path: PathBuf, message: String },
+
+    #[error("Store error: {message}")]
+    StoreError { message: String },
 }

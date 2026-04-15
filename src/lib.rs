@@ -1,7 +1,9 @@
 pub mod cli;
 pub mod compactor;
+pub mod config;
 pub mod detector;
 pub mod error;
 pub mod json_processor;
 pub mod processor;
+pub mod store;
 pub mod tokenizer;
