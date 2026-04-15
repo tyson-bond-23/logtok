@@ -494,38 +494,45 @@ fn token_map_reverse_map_populated() {
 
 #[test]
 fn token_map_merge_combines_maps() {
-    let mut map1 = TokenMap::new();
-    map1.get_or_insert("192.168.1.1", "IP");
+    // Simulate loading a previously saved store and adding new tokens
+    // Store had 2 IPs and 1 EMAIL from a previous session
+    let mut store = TokenMap::new();
+    store.get_or_insert("192.168.1.1", "IP");
+    store.get_or_insert("10.0.0.1", "IP");
+    store.get_or_insert("user@example.com", "EMAIL");
+    let stored_data = store.to_data().clone();
 
-    let mut map2 = TokenMap::new();
-    map2.get_or_insert("10.0.0.1", "IP");
-    map2.get_or_insert("user@example.com", "EMAIL");
+    // New session starts empty, loads stored data via merge
+    let mut session = TokenMap::new();
+    session.merge(stored_data);
 
-    map1.merge(map2.to_data().clone());
-
-    assert_eq!(map1.len(), 3);
-    // Counters should be advanced: next IP should be IP_003
-    let next = map1.get_or_insert("172.16.0.1", "IP");
+    assert_eq!(session.len(), 3);
+    // Counters should continue from the stored state: IP counter was 2, so next is IP_003
+    let next = session.get_or_insert("172.16.0.1", "IP");
     assert_eq!(next, "[IP_003]");
 }
 
 #[test]
 fn token_map_merge_preserves_existing() {
-    let mut map1 = TokenMap::new();
-    let original_token = map1.get_or_insert("192.168.1.1", "IP");
+    // Session already has a token for an IP
+    let mut session = TokenMap::new();
+    let original_token = session.get_or_insert("192.168.1.1", "IP");
 
-    let mut map2 = TokenMap::new();
-    map2.get_or_insert("192.168.1.1", "IP"); // same value
+    // Store also has the same IP (from a previous save of this session)
+    let mut store = TokenMap::new();
+    store.get_or_insert("192.168.1.1", "IP");
+    store.get_or_insert("10.0.0.1", "IP");
 
-    map1.merge(map2.to_data().clone());
+    session.merge(store.to_data().clone());
 
     // Original token should be preserved, not overwritten
-    let data = map1.to_data();
+    let data = session.to_data();
     assert_eq!(
         data.value_to_token.get("192.168.1.1").map(|s| s.as_str()),
         Some(original_token.as_str())
     );
-    assert_eq!(map1.len(), 1); // no duplicate
+    // Should have 2 total (original + the new one from store)
+    assert_eq!(session.len(), 2);
 }
 
 #[test]
