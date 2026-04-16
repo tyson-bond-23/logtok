@@ -17,6 +17,7 @@ fn fixture_path(name: &str) -> std::path::PathBuf {
 #[test]
 fn plain_text_has_tokens_no_raw_ips() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -34,6 +35,7 @@ fn plain_text_has_tokens_no_raw_ips() {
 #[test]
 fn plain_text_has_no_raw_emails() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -48,6 +50,7 @@ fn plain_text_has_no_raw_emails() {
 #[test]
 fn json_output_is_valid_json_with_tokens() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_json.log")
         .arg("--quiet")
         .output()
@@ -79,6 +82,7 @@ fn json_output_is_valid_json_with_tokens() {
 #[test]
 fn compaction_reduces_duplicate_lines() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -98,6 +102,7 @@ fn output_flag_writes_to_file() {
     let output_path = output_file.path().to_str().unwrap();
 
     let _result = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--output")
         .arg(output_path)
@@ -113,6 +118,7 @@ fn output_flag_writes_to_file() {
 #[test]
 fn quiet_flag_suppresses_progress() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -126,6 +132,7 @@ fn quiet_flag_suppresses_progress() {
 #[test]
 fn determinism_same_ip_gets_same_token() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -148,6 +155,7 @@ fn token_determinism_across_blocks() {
     // Use a very small block size to force multiple blocks
     // The same IP should get the same token regardless of which block it's in
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--block-size")
         .arg("1024") // Force many small blocks
@@ -170,8 +178,9 @@ fn token_determinism_across_blocks() {
 #[test]
 fn dry_run_shows_summary_no_output() {
     let output = logtok_cmd()
-        .arg("--dry-run")
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
+        .arg("--dry-run")
         .arg("--quiet")
         .output()
         .expect("failed to run logtok");
@@ -194,8 +203,9 @@ fn dry_run_shows_summary_no_output() {
 #[test]
 fn dry_run_hides_key_values() {
     let output = logtok_cmd()
-        .arg("--dry-run")
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
+        .arg("--dry-run")
         .arg("--quiet")
         .output()
         .expect("failed to run logtok");
@@ -223,6 +233,7 @@ fn config_flag_loads_custom_config() {
     let output = logtok_cmd()
         .arg("--config")
         .arg(config_path.to_str().unwrap())
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -243,9 +254,9 @@ fn config_flag_loads_custom_config() {
 }
 
 #[test]
-fn reset_store_flag() {
+fn reset_store_subcommand() {
     let tmp_dir = TempDir::new().expect("create temp dir");
-    let store_dir = tmp_dir.path().join(".logtok");
+    let store_dir = tmp_dir.path().join(".loktok");
     fs::create_dir_all(&store_dir).expect("create store dir");
     let store_file = store_dir.join("store.enc");
     fs::write(&store_file, b"dummy data").expect("write dummy store");
@@ -253,7 +264,7 @@ fn reset_store_flag() {
     assert!(store_file.exists(), "Store file should exist before reset");
 
     let _result = logtok_cmd()
-        .arg("--reset-store")
+        .arg("reset-store")
         .env("LOGTOK_KEY", "testkey123")
         .current_dir(tmp_dir.path())
         .assert()
@@ -261,13 +272,14 @@ fn reset_store_flag() {
 
     assert!(
         !store_file.exists(),
-        "Store file should be deleted after --reset-store"
+        "Store file should be deleted after reset-store"
     );
 }
 
 #[test]
 fn new_categories_detected_in_output() {
     let output = logtok_cmd()
+        .arg("tokenize")
         .arg("tests/fixtures/sample_plain.log")
         .arg("--quiet")
         .output()
@@ -307,6 +319,7 @@ fn store_persistence_across_runs() {
 
     // Run 1: tokenize with LOGTOK_KEY set
     logtok_cmd()
+        .arg("tokenize")
         .arg(fixture.to_str().unwrap())
         .arg("--quiet")
         .arg("--output")
@@ -317,7 +330,7 @@ fn store_persistence_across_runs() {
         .success();
 
     // Verify store was created
-    let store_file = tmp_dir.path().join(".logtok").join("store.enc");
+    let store_file = tmp_dir.path().join(".loktok").join("store.enc");
     assert!(
         store_file.exists(),
         "Store file should be created after first run"
@@ -325,6 +338,7 @@ fn store_persistence_across_runs() {
 
     // Run 2: tokenize again with same key
     logtok_cmd()
+        .arg("tokenize")
         .arg(fixture.to_str().unwrap())
         .arg("--quiet")
         .arg("--output")
@@ -338,4 +352,203 @@ fn store_persistence_across_runs() {
     let out1 = fs::read_to_string(&output1_file).expect("read output1");
     let out2 = fs::read_to_string(&output2_file).expect("read output2");
     assert_eq!(out1, out2, "Both runs should produce identical token assignments via store persistence");
+}
+
+// ============================================================
+// New integration tests for Phase 3 Plan 01: De-tokenization
+// ============================================================
+
+#[test]
+fn detokenize_from_file() {
+    let tmp_dir = TempDir::new().expect("create temp dir");
+    let fixture = fixture_path("sample_plain.log");
+    let tokenized_output = tmp_dir.path().join("tokenized.log");
+
+    // Step 1: Tokenize to generate store
+    logtok_cmd()
+        .arg("tokenize")
+        .arg(fixture.to_str().unwrap())
+        .arg("--quiet")
+        .arg("--output")
+        .arg(tokenized_output.to_str().unwrap())
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .assert()
+        .success();
+
+    // Step 2: Create a "response" file with tokens
+    let tokenized_content = fs::read_to_string(&tokenized_output).expect("read tokenized output");
+    // Extract first line which should contain [IP_001]
+    let first_line = tokenized_content.lines().next().unwrap_or("");
+    assert!(first_line.contains("[IP_"), "Tokenized output should contain IP token");
+
+    let response_file = tmp_dir.path().join("response.txt");
+    fs::write(&response_file, format!("The server at {} had an error", first_line)).unwrap();
+
+    // Step 3: Detokenize
+    let output = logtok_cmd()
+        .arg("detokenize")
+        .arg(response_file.to_str().unwrap())
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .output()
+        .expect("failed to run logtok detokenize");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    // Should contain real IPs (de-tokenized) not token placeholders
+    assert!(
+        stdout.contains("192.168.1.100") || !stdout.contains("[IP_001]"),
+        "Detokenized output should replace tokens with real values"
+    );
+}
+
+#[test]
+fn detokenize_from_stdin() {
+    let tmp_dir = TempDir::new().expect("create temp dir");
+    let fixture = fixture_path("sample_plain.log");
+    let tokenized_output = tmp_dir.path().join("tokenized.log");
+
+    // Step 1: Tokenize to generate store
+    logtok_cmd()
+        .arg("tokenize")
+        .arg(fixture.to_str().unwrap())
+        .arg("--quiet")
+        .arg("--output")
+        .arg(tokenized_output.to_str().unwrap())
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .assert()
+        .success();
+
+    // Step 2: Pipe tokenized content via stdin to detokenize
+    let tokenized_content = fs::read_to_string(&tokenized_output).expect("read tokenized output");
+    // Take first few lines for the stdin test
+    let snippet: String = tokenized_content.lines().take(3).collect::<Vec<_>>().join("\n");
+
+    let output = logtok_cmd()
+        .arg("detokenize")
+        .write_stdin(snippet)
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .output()
+        .expect("failed to run logtok detokenize via stdin");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Should have replaced some tokens
+    assert!(
+        stderr.contains("tokens replaced"),
+        "Stderr should report tokens replaced, got: {}",
+        stderr
+    );
+    // stdout should contain de-tokenized text
+    assert!(!stdout.is_empty(), "Detokenized output should not be empty");
+}
+
+#[test]
+fn detokenize_detailed_writes_markdown() {
+    let tmp_dir = TempDir::new().expect("create temp dir");
+    let fixture = fixture_path("sample_plain.log");
+    let tokenized_output = tmp_dir.path().join("tokenized.log");
+    let report_path = tmp_dir.path().join("report.md");
+
+    // Step 1: Tokenize to generate store
+    logtok_cmd()
+        .arg("tokenize")
+        .arg(fixture.to_str().unwrap())
+        .arg("--quiet")
+        .arg("--output")
+        .arg(tokenized_output.to_str().unwrap())
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .assert()
+        .success();
+
+    // Step 2: Detokenize with --detailed
+    let tokenized_content = fs::read_to_string(&tokenized_output).expect("read tokenized output");
+    let snippet: String = tokenized_content.lines().take(3).collect::<Vec<_>>().join("\n");
+    let snippet_file = tmp_dir.path().join("snippet.txt");
+    fs::write(&snippet_file, &snippet).unwrap();
+
+    logtok_cmd()
+        .arg("detokenize")
+        .arg(snippet_file.to_str().unwrap())
+        .arg("--detailed")
+        .arg(report_path.to_str().unwrap())
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .assert()
+        .success();
+
+    // Verify markdown report was written
+    assert!(report_path.exists(), "Report file should exist");
+    let report = fs::read_to_string(&report_path).expect("read report");
+    assert!(
+        report.contains("# Diagnosis Report"),
+        "Report should contain markdown header"
+    );
+    assert!(
+        report.contains("tokens resolved"),
+        "Report should contain token resolution stats"
+    );
+}
+
+#[test]
+fn detokenize_empty_store_errors() {
+    let tmp_dir = TempDir::new().expect("create temp dir");
+    let store_dir = tmp_dir.path().join(".loktok");
+    fs::create_dir_all(&store_dir).expect("create store dir");
+
+    // Create a file to detokenize
+    let input_file = tmp_dir.path().join("input.txt");
+    fs::write(&input_file, "The server [IP_001] had an error").unwrap();
+
+    // Detokenize with empty store (no store.enc file = empty TokenMapData)
+    let output = logtok_cmd()
+        .arg("detokenize")
+        .arg(input_file.to_str().unwrap())
+        .env("LOGTOK_KEY", "testkey123")
+        .current_dir(tmp_dir.path())
+        .output()
+        .expect("failed to run logtok detokenize");
+
+    assert!(
+        !output.status.success(),
+        "Should fail with empty store"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Token store is empty"),
+        "Stderr should mention empty store, got: {}",
+        stderr
+    );
+}
+
+#[test]
+fn detokenize_no_key_errors() {
+    let tmp_dir = TempDir::new().expect("create temp dir");
+    let input_file = tmp_dir.path().join("input.txt");
+    fs::write(&input_file, "The server [IP_001] had an error").unwrap();
+
+    // Detokenize without LOGTOK_KEY
+    let output = logtok_cmd()
+        .arg("detokenize")
+        .arg(input_file.to_str().unwrap())
+        .env_remove("LOGTOK_KEY")
+        .current_dir(tmp_dir.path())
+        .output()
+        .expect("failed to run logtok detokenize");
+
+    assert!(
+        !output.status.success(),
+        "Should fail without LOGTOK_KEY"
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("LOGTOK_KEY"),
+        "Stderr should mention LOGTOK_KEY, got: {}",
+        stderr
+    );
 }
