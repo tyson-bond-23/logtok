@@ -35,4 +35,7 @@ pub enum TokeniserError {
 
     #[error("Store error: {message}")]
     StoreError { message: String },
+
+    #[error("Detokenize error: {message}")]
+    DetokenizeError { message: String },
 }

@@ -56,7 +56,7 @@ pub fn process_file_with_config(
         let pb = ProgressBar::new(file_size);
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("{spinner:.green} [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+                .template("{spinner:.green} [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({bytes_per_sec}) ETA: {eta}")
                 .unwrap()
                 .progress_chars("=>-"),
         );

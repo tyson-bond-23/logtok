@@ -1,6 +1,8 @@
 pub mod cli;
+pub mod clipboard;
 pub mod compactor;
 pub mod config;
+pub mod detokenizer;
 pub mod detector;
 pub mod error;
 pub mod json_processor;
