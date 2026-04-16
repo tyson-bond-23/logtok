@@ -165,6 +165,46 @@ Do not make direct repo edits outside a GSD workflow unless the user explicitly 
 
 
 
+## Logtok Token-Aware Diagnosis
+
+This project uses `logtok` to tokenize sensitive data before analysis. When you see log content with bracketed tokens, use these rules to reason about the logs.
+
+**Token format:** `[CATEGORY_NNN]` where CATEGORY is an uppercase label and NNN is a 3+ digit counter.
+
+Example: `Connection to [IP_001]:[PORT_001] failed: authentication error for [USER_001] with [KEY_001]`
+
+**All 19 categories and what they represent:**
+
+| Token prefix | Represents |
+|-------------|------------|
+| IP | IP addresses (v4 and v6) |
+| HOST | Hostnames and domain names |
+| URL | Internal URLs and endpoints |
+| PATH | File system paths |
+| PORT | Network port numbers |
+| EMAIL | Email addresses |
+| USER | Usernames and user identifiers |
+| PHONE | Phone numbers |
+| KEY | API keys and access tokens |
+| PASS | Passwords and secrets |
+| CONN | Database connection strings |
+| JWT | JSON Web Tokens |
+| PEM | PEM-encoded certificates/keys |
+| UUID | UUIDs and GUIDs |
+| MAC | MAC addresses |
+| CC | Credit card numbers |
+| SSN | Social security numbers |
+| DOB | Dates of birth |
+| CUSTOM | User-defined custom patterns |
+
+**How to reason about tokens:**
+- **Same token = same real value** everywhere. If `[IP_001]` appears in both an error log and a config line, it is the same IP address.
+- **Different tokens in same category = different values.** `[IP_001]` and `[IP_002]` are two distinct IPs.
+- **Cross-reference tokens** across log lines to trace request flows, identify which services communicate, and find root causes.
+- **Treat tokens as opaque identifiers** -- do not guess what real values they represent.
+
+**IMPORTANT:** Keep all `[CATEGORY_NNN]` tokens exactly as-is in your response. Do NOT replace them with invented values. The user will run `logtok detokenize` to restore real values after your diagnosis.
+
 <!-- GSD:profile-start -->
 ## Developer Profile
 
