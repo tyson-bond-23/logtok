@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Core Tokenization Engine** - Block-based pipeline that reads logs, produces deterministic category-prefixed tokens, handles JSON and plain text
 - [ ] **Phase 2: Detection & Token Store** - Pattern-based detection for all sensitive data categories with encrypted persistent storage and user configuration
-- [ ] **Phase 3: Diagnosis & Delivery** - Claude API integration, de-tokenization of results, output formatting, and cross-platform binary distribution
+- [ ] **Phase 3: Diagnosis & Delivery** - De-tokenization engine, Claude Code integration via CLAUDE.md, CLI polish, documentation, and cross-platform binary distribution
 
 ## Phase Details
 
@@ -52,21 +52,21 @@ Plans:
 - [x] 02-03-PLAN.md — CLI integration (--dry-run, --reset-store, --config), processor wiring, end-to-end tests
 
 ### Phase 3: Diagnosis & Delivery
-**Goal**: User can send tokenized logs to Claude for diagnosis, receive de-tokenized results in readable formats, and run the tool on any platform
+**Goal**: User can take Claude Code's tokenized diagnosis and de-tokenize it back to real values, with polished CLI UX and cross-platform binary distribution
 **Depends on**: Phase 2
 **Requirements**: DIA-01, DIA-02, DIA-03, DIA-04, DIA-05, INF-02
 **Success Criteria** (what must be TRUE):
-  1. User can send tokenized logs to Claude API and receive a diagnosis without any sensitive data leaving the machine
+  1. User can send tokenized logs to Claude Code and receive a diagnosis without any sensitive data leaving the machine
   2. Claude's tokenized response is automatically de-tokenized back to real values in the output
   3. User can choose between a bullet-point summary (root cause, affected components, fix) or a detailed markdown report
   4. User can copy tokenized output to clipboard for manual use with any LLM
   5. The tool runs as a single binary on Windows, macOS, Linux, and ARM without runtime dependencies
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — CLI restructure to subcommands, detokenize engine, clipboard support, progress bar enhancement
+- [ ] 03-02-PLAN.md — CLAUDE.md token-aware instruction block, README.md documentation
+- [ ] 03-03-PLAN.md — GitHub Actions CI and cross-platform release workflows
 
 ## Progress
 
@@ -76,5 +76,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Tokenization Engine | 3/3 | Complete | - |
-| 2. Detection & Token Store | 0/3 | Planning complete | - |
-| 3. Diagnosis & Delivery | 0/3 | Not started | - |
+| 2. Detection & Token Store | 3/3 | Complete | - |
+| 3. Diagnosis & Delivery | 0/3 | Planning complete | - |
