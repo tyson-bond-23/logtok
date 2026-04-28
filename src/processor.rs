@@ -173,7 +173,7 @@ pub fn process_file_with_config(
     // Save token map back to store if available
     if let Some(s) = store {
         // Ensure .logtok/.gitignore exists (T-02-15)
-        ensure_gitignore(input_path, s)?;
+        ensure_gitignore(s.dir())?;
         s.save(token_map.to_data())
             .with_context(|| "Failed to save token store")?;
     }
@@ -181,12 +181,11 @@ pub fn process_file_with_config(
     Ok(())
 }
 
-/// Ensure `.logtok/.gitignore` exists with `*` content to prevent accidental commit (T-02-15).
-fn ensure_gitignore(_input_path: &Path, _store: &Store) -> Result<()> {
-    let store_dir = std::env::current_dir()?.join(".logtok");
+/// Ensure the store directory has a `.gitignore` with `*` content to prevent accidental commit (T-02-15).
+fn ensure_gitignore(store_dir: &Path) -> Result<()> {
     let gitignore_path = store_dir.join(".gitignore");
     if !gitignore_path.exists() {
-        fs::create_dir_all(&store_dir)?;
+        fs::create_dir_all(store_dir)?;
         fs::write(&gitignore_path, "*\n")?;
     }
     Ok(())

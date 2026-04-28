@@ -59,6 +59,11 @@ impl Store {
         })
     }
 
+    /// Returns the store's parent directory.
+    pub fn dir(&self) -> &Path {
+        self.path.parent().unwrap_or(&self.path)
+    }
+
     /// Create a new Store targeting `store_dir/store.enc`.
     /// Requires `LOGTOK_KEY` environment variable to be set.
     pub fn new(store_dir: &Path) -> Result<Self, TokeniserError> {
