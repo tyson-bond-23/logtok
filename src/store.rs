@@ -44,16 +44,8 @@ pub struct Store {
 }
 
 impl Store {
-    /// Create a new Store targeting `store_dir/store.enc`.
-    /// Requires `LOGTOK_KEY` environment variable to be set.
-    pub fn new(store_dir: &Path) -> Result<Self, TokeniserError> {
-        let passphrase =
-            std::env::var("LOGTOK_KEY").map_err(|_| TokeniserError::StoreError {
-                message: "LOGTOK_KEY environment variable is required for token store encryption. \
-                          Set it with: export LOGTOK_KEY='your-passphrase'"
-                    .to_string(),
-            })?;
-
+    /// Create a new Store targeting `store_dir/store.enc` with an explicit passphrase.
+    pub fn with_passphrase(store_dir: &Path, passphrase: String) -> Result<Self, TokeniserError> {
         let store_path = store_dir.join("store.enc");
         if let Some(parent) = store_path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| TokeniserError::StoreError {
@@ -65,6 +57,18 @@ impl Store {
             path: store_path,
             passphrase,
         })
+    }
+
+    /// Create a new Store targeting `store_dir/store.enc`.
+    /// Requires `LOGTOK_KEY` environment variable to be set.
+    pub fn new(store_dir: &Path) -> Result<Self, TokeniserError> {
+        let passphrase =
+            std::env::var("LOGTOK_KEY").map_err(|_| TokeniserError::StoreError {
+                message: "LOGTOK_KEY environment variable is required for token store encryption. \
+                          Set it with: export LOGTOK_KEY='your-passphrase'"
+                    .to_string(),
+            })?;
+        Self::with_passphrase(store_dir, passphrase)
     }
 
     /// Load TokenMapData from the encrypted store file.

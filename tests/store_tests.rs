@@ -1,10 +1,6 @@
 use logtok::store::Store;
 use logtok::tokenizer::{TokenEntry, TokenMapData};
-use std::sync::Mutex;
 use tempfile::TempDir;
-
-// Serialize all store tests since they share the LOGTOK_KEY env var
-static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn sample_token_map_data() -> TokenMapData {
     let mut data = TokenMapData::default();
@@ -26,12 +22,10 @@ fn sample_token_map_data() -> TokenMapData {
 
 #[test]
 fn save_then_load_round_trips_data() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "test-passphrase-123") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "test-passphrase-123".to_string()).unwrap();
 
     let original = sample_token_map_data();
     store.save(&original).unwrap();
@@ -45,12 +39,10 @@ fn save_then_load_round_trips_data() {
 
 #[test]
 fn store_file_has_magic_bytes_and_version() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "test-passphrase-magic") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "test-passphrase-magic".to_string()).unwrap();
 
     store.save(&sample_token_map_data()).unwrap();
 
@@ -61,35 +53,30 @@ fn store_file_has_magic_bytes_and_version() {
 
 #[test]
 fn same_passphrase_same_salt_derives_same_key() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "consistent-key-test") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "consistent-key-test".to_string()).unwrap();
 
     let data = sample_token_map_data();
     store.save(&data).unwrap();
 
     // Load with same passphrase should work
-    let store2 = Store::new(&store_dir).unwrap();
+    let store2 = Store::with_passphrase(&store_dir, "consistent-key-test".to_string()).unwrap();
     let loaded = store2.load().unwrap();
     assert_eq!(loaded.value_to_token, data.value_to_token);
 }
 
 #[test]
 fn wrong_passphrase_fails_to_decrypt() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "correct-passphrase") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "correct-passphrase".to_string()).unwrap();
     store.save(&sample_token_map_data()).unwrap();
 
     // Try loading with different passphrase
-    unsafe { std::env::set_var("LOGTOK_KEY", "wrong-passphrase") };
-    let store2 = Store::new(&store_dir).unwrap();
+    let store2 = Store::with_passphrase(&store_dir, "wrong-passphrase".to_string()).unwrap();
     let result = store2.load();
     assert!(result.is_err());
     let err_msg = format!("{}", result.unwrap_err());
@@ -102,12 +89,10 @@ fn wrong_passphrase_fails_to_decrypt() {
 
 #[test]
 fn each_save_generates_different_nonce() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "nonce-test-key") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "nonce-test-key".to_string()).unwrap();
 
     let data = sample_token_map_data();
     store.save(&data).unwrap();
@@ -124,12 +109,10 @@ fn each_save_generates_different_nonce() {
 
 #[test]
 fn reset_deletes_store_file() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "reset-test-key") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "reset-test-key".to_string()).unwrap();
 
     store.save(&sample_token_map_data()).unwrap();
     assert!(store_dir.join("store.enc").exists());
@@ -140,12 +123,10 @@ fn reset_deletes_store_file() {
 
 #[test]
 fn load_nonexistent_file_returns_empty_data() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "empty-load-key") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "empty-load-key".to_string()).unwrap();
 
     let data = store.load().unwrap();
     assert!(data.value_to_token.is_empty());
@@ -156,12 +137,20 @@ fn load_nonexistent_file_returns_empty_data() {
 
 #[test]
 fn missing_logtok_key_produces_error() {
-    let _guard = ENV_LOCK.lock().unwrap();
+    // This test specifically validates the env-var error path in Store::new,
+    // so it still needs env var manipulation. Use a unique dir to avoid conflicts.
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
+    // Temporarily remove LOGTOK_KEY to test the error path
+    let original = std::env::var("LOGTOK_KEY").ok();
     unsafe { std::env::remove_var("LOGTOK_KEY") };
     let result = Store::new(&store_dir);
+    // Restore immediately
+    if let Some(val) = original {
+        unsafe { std::env::set_var("LOGTOK_KEY", val) };
+    }
+
     assert!(result.is_err());
     let err_msg = format!("{}", result.unwrap_err());
     assert!(
@@ -169,18 +158,14 @@ fn missing_logtok_key_produces_error() {
         "Error should mention LOGTOK_KEY, got: {}",
         err_msg
     );
-    // Restore env var so other tests aren't affected
-    unsafe { std::env::set_var("LOGTOK_KEY", "restored-after-test") };
 }
 
 #[test]
 fn store_creates_directory_if_missing() {
-    let _guard = ENV_LOCK.lock().unwrap();
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join("deeply").join("nested").join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "dir-create-test") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "dir-create-test".to_string()).unwrap();
 
     store.save(&sample_token_map_data()).unwrap();
     assert!(store_dir.join("store.enc").exists());
@@ -188,13 +173,11 @@ fn store_creates_directory_if_missing() {
 
 #[test]
 fn atomic_write_uses_temp_file() {
-    let _guard = ENV_LOCK.lock().unwrap();
     // Verify that the final store.enc exists but no .enc.tmp remains after save
     let dir = TempDir::new().unwrap();
     let store_dir = dir.path().join(".logtok");
 
-    unsafe { std::env::set_var("LOGTOK_KEY", "atomic-write-test") };
-    let store = Store::new(&store_dir).unwrap();
+    let store = Store::with_passphrase(&store_dir, "atomic-write-test".to_string()).unwrap();
 
     store.save(&sample_token_map_data()).unwrap();
 
