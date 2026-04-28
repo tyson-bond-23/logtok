@@ -8,6 +8,16 @@ A high-performance, cross-platform CLI tool that tokenizes sensitive data out of
 
 Engineers can diagnose production log errors through Claude Code without revealing any sensitive information — secrets, internal architecture, business logic, or PII never leave the local environment.
 
+## Current Milestone: v2.0 Developer Experience
+
+**Goal:** Make logtok documentation visually polished and easily accessible — colored CLI help and a professional auto-generated HTML docs page for developers and DevOps engineers.
+
+**Target features:**
+- Colored, visually structured CLI help output (syntax-highlighted commands, bold headers, colored sections)
+- Auto-generated single-file HTML documentation page (install guide, quick start flow, full command reference with copy buttons)
+- `logtok docs` command that generates HTML from the CLI's actual commands
+- Professional, clean design targeted at developers and DevOps
+
 ## Current State
 
 **Shipped:** v1.0 MVP (2026-04-28)
@@ -40,7 +50,10 @@ Engineers can diagnose production log errors through Claude Code without reveali
 
 ### Active
 
-(No active requirements — next milestone not yet planned)
+- [ ] Colored, visually structured CLI help output
+- [ ] Auto-generated single-file HTML documentation page with install guide, quick start, and command reference
+- [ ] `logtok docs` command that generates HTML from CLI's actual commands
+- [ ] Professional design targeted at developers and DevOps
 
 ### Out of Scope
 
@@ -83,5 +96,18 @@ Engineers can diagnose production log errors through Claude Code without reveali
 
 This document evolves at phase transitions and milestone boundaries.
 
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-04-28 after v1.0 milestone*
+*Last updated: 2026-04-28 after v2.0 milestone started*
