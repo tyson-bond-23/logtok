@@ -127,7 +127,10 @@ impl TokenMap {
             .data
             .entries
             .iter()
-            .filter(|(_, entry)| now - entry.created_at > ttl_seconds)
+            .filter(|(_, entry)| {
+                now.checked_sub(entry.created_at)
+                    .map_or(false, |age| age > ttl_seconds)
+            })
             .map(|(value, _)| value.clone())
             .collect();
         for value in expired_values {
