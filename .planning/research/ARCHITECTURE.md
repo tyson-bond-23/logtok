@@ -1,405 +1,340 @@
-# Architecture Research
+# Architecture: v2.0 Developer Experience
 
-**Domain:** Log tokenization and privacy-preserving log diagnosis CLI
-**Researched:** 2026-04-13
+**Domain:** Colored CLI help and auto-generated HTML documentation for Rust CLI tool
+**Researched:** 2026-04-28
 **Confidence:** HIGH
 
-## Standard Architecture
+## Scope
 
-### System Overview
+This document covers ONLY the architecture for the two new v2.0 features: colored CLI help and the `logtok docs` HTML generation command. The existing processing pipeline, detection engine, token vault, and encryption architecture are unchanged.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         CLI Interface                            │
-│  (commands: tokenize, diagnose, detokenize, configure)           │
-├─────────────────────────────────────────────────────────────────┤
-│                      Orchestration Layer                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐     │
-│  │  Tokenize     │  │  Diagnose    │  │  De-tokenize       │     │
-│  │  Command      │  │  Command     │  │  Command           │     │
-│  └──────┬───────┘  └──────┬───────┘  └────────┬───────────┘     │
-├─────────┴────────────────┴──────────────────┴───────────────────┤
-│                      Processing Pipeline                         │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────┐  │
-│  │  Source     │  │  Block     │  │  Detection  │  │  Token   │  │
-│  │  Reader     │→ │  Splitter  │→ │  Engine     │→ │  Replace │  │
-│  └────────────┘  └────────────┘  └────────────┘  └──────────┘  │
-├─────────────────────────────────────────────────────────────────┤
-│                      Detection Engine                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌──────────┐  │
-│  │ Credentials│  │ Infra      │  │ Business   │  │ PII      │  │
-│  │ Detector   │  │ Detector   │  │ Detector   │  │ Detector │  │
-│  └────────────┘  └────────────┘  └────────────┘  └──────────┘  │
-├─────────────────────────────────────────────────────────────────┤
-│                      Storage & Integration                       │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐     │
-│  │  Token Vault  │  │  Claude API  │  │  Output Formatter  │     │
-│  │  (encrypted)  │  │  Client      │  │  (md / summary)    │     │
-│  └──────────────┘  └──────────────┘  └────────────────────┘     │
-└─────────────────────────────────────────────────────────────────┘
-```
+## Integration with Existing Architecture
 
-### Component Responsibilities
+### Current CLI Setup (cli.rs)
 
-| Component | Responsibility | Implementation Approach |
-|-----------|----------------|------------------------|
-| CLI Interface | Parse commands, flags, validate input, route to orchestrator | cobra (Go) or clap (Rust) — standard CLI framework |
-| Source Reader | Read log data from file (v1), connectors (v2) | Interface-based; v1 implements file reader with io.Reader/BufReader |
-| Block Splitter | Chunk large files into processable blocks respecting log boundaries | Fixed-size blocks with boundary detection (newline or multi-line entry) |
-| Detection Engine | Identify sensitive data in text using detector chain | Registry of detectors, each returning spans of matched sensitive data |
-| Credential Detector | Find API keys, tokens, passwords, connection strings | Regex patterns (high-entropy strings, known key formats like AWS/GitHub) |
-| Infrastructure Detector | Find IPs, hostnames, file paths, OS details | Regex patterns (IPv4/6, RFC 1918 ranges, FQDN, Unix/Windows paths) |
-| Business Logic Detector | Find internal function names, class names, internal URLs | Configurable patterns + heuristics (camelCase/snake_case in error context) |
-| PII Detector | Find emails, user IDs, names | Regex for structured PII (emails, phone numbers); configurable rules for IDs |
-| Token Replacer | Replace detected spans with consistent tokens | Deterministic token generation: same input always maps to same token |
-| Token Vault | Persist encrypted bidirectional token-to-original mappings | AES-256-GCM encrypted local file (SQLite or flat JSON, encrypted at rest) |
-| Claude API Client | Send tokenized logs, receive diagnosis | HTTP client with retry, rate limiting, streaming response support |
-| De-tokenizer | Replace tokens in Claude's response with originals | Reverse lookup from Token Vault; handles partial matches in prose |
-| Output Formatter | Format final output as bullet summary or markdown report | Template-based rendering to stdout or file |
+The existing `Cli` struct uses clap derive macros:
 
-## Recommended Project Structure
-
-```
-cmd/
-├── root.go                 # CLI root command setup
-├── tokenize.go             # tokenize subcommand
-├── diagnose.go             # diagnose subcommand (tokenize + send + detokenize)
-└── config.go               # configuration management
-
-internal/
-├── pipeline/               # Processing pipeline orchestration
-│   ├── pipeline.go         # Block-based pipeline coordinator
-│   └── block.go            # Block splitting and boundary detection
-├── source/                 # Log source abstraction
-│   ├── source.go           # Source interface definition
-│   ├── file.go             # File source (v1)
-│   └── stdin.go            # Stdin/pipe source
-├── detect/                 # Detection engine
-│   ├── engine.go           # Detector registry and chain runner
-│   ├── detector.go         # Detector interface
-│   ├── credentials.go      # Credential patterns
-│   ├── infrastructure.go   # Infrastructure patterns
-│   ├── business.go         # Business logic patterns
-│   ├── pii.go              # PII patterns
-│   └── patterns/           # Compiled regex pattern sets
-│       └── patterns.go
-├── token/                  # Tokenization core
-│   ├── replacer.go         # Token generation and text replacement
-│   ├── vault.go            # Encrypted token store interface
-│   ├── vault_file.go       # File-based vault implementation
-│   └── crypto.go           # AES-256-GCM encryption utilities
-├── claude/                 # Claude API integration
-│   ├── client.go           # API client with retry/rate limiting
-│   └── prompt.go           # Prompt templates for log diagnosis
-├── detokenize/             # De-tokenization
-│   └── detokenize.go       # Reverse token replacement in responses
-├── output/                 # Output formatting
-│   ├── summary.go          # Bullet-point summary format
-│   └── report.go           # Detailed markdown report format
-└── config/                 # Configuration
-    └── config.go           # Config file loading, defaults
-
-testdata/                   # Test fixtures
-├── logs/                   # Sample log files for testing
-└── expected/               # Expected tokenized outputs
-```
-
-### Structure Rationale
-
-- **cmd/**: Thin CLI layer. Each command file wires up dependencies and calls into `internal/`. Keeps CLI concerns separate from logic.
-- **internal/pipeline/**: Owns the block-based processing flow. This is the central coordinator that pulls from sources, runs detection, and outputs tokenized text.
-- **internal/source/**: Interface abstraction means adding Elasticsearch/CloudWatch/Kafka connectors in v2 is just adding new implementations, zero changes to pipeline.
-- **internal/detect/**: Each detector category is independent. The engine runs them as a chain. New detector types are added by implementing the interface and registering.
-- **internal/token/**: The vault is the security boundary. Crypto operations are isolated here. Vault interface allows swapping file-based for other backends later.
-- **internal/claude/**: Isolated API integration. If the user wants to use a different LLM, this is the only package that changes.
-
-## Architectural Patterns
-
-### Pattern 1: Source-Transform-Sink Pipeline
-
-**What:** The dominant pattern in log processing tools (Vector, Fluent Bit, Logstash). Data flows through a DAG: Sources emit events, Transforms process them, Sinks consume results. For this tool, the pipeline is linear (not a DAG) since there is one source, one transform chain, and one sink per invocation.
-
-**When to use:** Any data processing that reads from input, transforms, and writes output. This is the architecture.
-
-**Trade-offs:** Simple and composable. The linear variant avoids DAG complexity while preserving the ability to add fan-out later.
-
-**Example:**
-```go
-// Source interface - v1 is files, v2 adds connectors
-type Source interface {
-    // Read returns the next block of log data.
-    // Returns io.EOF when exhausted.
-    Read(ctx context.Context) (Block, error)
-    Close() error
-}
-
-// Detector interface - each sensitive data category
-type Detector interface {
-    Name() string
-    Detect(text []byte) []Span // Span = {Start, End, Category, Original}
-}
-
-// Sink interface - where tokenized output goes
-type Sink interface {
-    Write(ctx context.Context, block TokenizedBlock) error
-    Close() error
+```rust
+#[derive(Parser, Debug)]
+#[command(name = "logtok", version, about, long_about)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Commands,
+    // ...
 }
 ```
 
-### Pattern 2: Block-Based Streaming with Boundary Detection
+The derive approach auto-generates the `CommandFactory` trait, providing `Cli::command() -> Command`. This `Command` struct is the key to both features -- it holds all subcommands, arguments, help text, and metadata.
 
-**What:** Process large files in fixed-size blocks (e.g., 1MB) rather than loading entirely into memory. Each block must respect log entry boundaries -- a block boundary must not split a multi-line log entry (stack trace, JSON object). The block splitter reads ahead to find the nearest safe boundary.
+### What Changes vs What Stays
 
-**When to use:** Always, for files above a threshold (e.g., 10MB). Below that, single-block processing is fine.
+| Component | Change Type | Details |
+|-----------|-------------|---------|
+| `cli.rs` | MODIFY | Add `Styles` const to `#[command()]`, add `Docs` subcommand |
+| `main.rs` | MODIFY | Add match arm for `Commands::Docs` |
+| `src/docs.rs` | NEW | HTML generation module -- walks `Command` tree, renders via askama |
+| Cargo.toml | MODIFY | Add `askama = "0.15"` |
 
-**Trade-offs:** Enables processing of multi-GB files with constant memory. Adds complexity around boundary detection -- must handle multi-line entries (stack traces, JSON logs) correctly. Block size is tunable for throughput vs. memory.
+Key principle: **No existing modules need structural changes.** Colored help is a configuration change on the existing `Cli` struct. HTML generation is a new leaf module with no dependencies on the processing pipeline.
 
-**Example:**
-```go
-type BlockSplitter struct {
-    reader    io.Reader
-    blockSize int
-    overlap   int // bytes of overlap for boundary safety
+## Feature 1: Colored CLI Help
+
+### How clap Styles Work
+
+clap 4.x has built-in ANSI color support via `clap::builder::Styles`. Attach a `Styles` instance to the root `Command` and it cascades to all subcommands automatically.
+
+**Styleable elements** (9 semantic regions):
+- `header` -- section headings ("Usage:", "Arguments:", "Options:")
+- `literal` -- command names, flags (`--output`, `tokenize`)
+- `placeholder` -- value placeholders (`<FILE>`, `[OPTIONS]`)
+- `usage` -- the usage line
+- `valid` -- valid value hints
+- `invalid` -- error highlights
+- `error` -- error headings
+- `context` -- defaults and env var notes (`[default: 65536]`)
+- `context_value` -- values within context
+
+**Implementation:**
+
+```rust
+// In cli.rs
+use clap::builder::styling::{AnsiColor, Styles};
+
+const STYLES: Styles = Styles::styled()
+    .header(AnsiColor::Yellow.on_default().bold())
+    .usage(AnsiColor::Yellow.on_default().bold())
+    .literal(AnsiColor::Green.on_default().bold())
+    .placeholder(AnsiColor::Cyan.on_default())
+    .valid(AnsiColor::Green.on_default())
+    .invalid(AnsiColor::Red.on_default());
+
+#[derive(Parser, Debug)]
+#[command(name = "logtok", version, about, long_about, styles = STYLES)]
+pub struct Cli { ... }
+```
+
+This is a `const` definition (evaluated at compile time) plus a single attribute change. ~15 lines total.
+
+**NO_COLOR compliance:** clap respects `NO_COLOR` and `CLICOLOR` environment variables automatically via `ColorChoice::Auto` (the default). No manual handling needed.
+
+**No additional dependencies:** clap's styling uses `anstyle` internally (already a transitive dependency). No need for `colored`, `owo-colors`, or similar crates.
+
+## Feature 2: Auto-Generated HTML Documentation
+
+### Runtime Subcommand Approach
+
+| Approach | Pros | Cons | Verdict |
+|----------|------|------|---------|
+| Build-time (`build.rs`) | Docs baked into binary | Can't include runtime info, adds build complexity, requires restructuring for build-script access | NOT recommended |
+| Runtime subcommand (`logtok docs`) | Always up-to-date, user controls output path, simple | Tiny one-shot runtime cost | **RECOMMENDED** |
+
+### Data Flow: clap -> askama -> HTML
+
+```
+User runs: logtok docs --output docs.html
+   |
+   v
+main.rs: parse CLI, match Commands::Docs { output }
+   |
+   v
+docs::generate_docs(Cli::command(), &output)
+   |
+   v
+docs::extract_commands(&command)
+   |  Walks: command.get_subcommands()
+   |  For each: get_name(), get_about(), get_long_about(),
+   |            get_arguments(), get_visible_aliases()
+   |  For each arg: get_id(), get_help(), get_long_help(),
+   |                get_default_values(), is_required_set(),
+   |                get_short(), get_long()
+   |
+   v
+Build DocsTemplate struct (askama context)
+   |  version: env!("CARGO_PKG_VERSION")
+   |  commands: Vec<CommandInfo>
+   |  categories: 19-category reference table
+   |
+   v
+template.render() -> String (HTML)
+   |  askama compiles template at build time
+   |  Template includes inline CSS and JS
+   |
+   v
+std::fs::write(output, html)
+```
+
+### Intermediate Data Structures
+
+```rust
+/// Extracted from a single clap argument
+struct ArgInfo {
+    name: String,
+    short: Option<char>,
+    long: Option<String>,
+    help: String,
+    required: bool,
+    default: Option<String>,
+    is_positional: bool,
 }
 
-func (bs *BlockSplitter) Next() (Block, error) {
-    buf := make([]byte, bs.blockSize+bs.overlap)
-    n, err := io.ReadFull(bs.reader, buf)
-    if n == 0 {
-        return Block{}, io.EOF
-    }
-    // Find last complete log entry boundary
-    boundary := findLastEntryBoundary(buf[:n])
-    // Seek reader back to boundary for next block
-    return Block{Data: buf[:boundary]}, err
+/// Extracted from a single clap subcommand
+struct CommandInfo {
+    name: String,
+    about: String,
+    long_about: Option<String>,
+    args: Vec<ArgInfo>,
+}
+
+/// Token category for the reference table
+struct CategoryInfo {
+    prefix: &'static str,
+    description: &'static str,
+    example: &'static str,
 }
 ```
 
-### Pattern 3: Detector Chain with Span Merging
+The intermediate representation decouples clap's API from HTML rendering. The extraction can be tested independently of the template.
 
-**What:** Run multiple detectors in sequence, each producing a list of byte spans that contain sensitive data. Merge overlapping spans before replacement to avoid double-tokenization. Replace spans from right-to-left to preserve byte offsets.
+### askama Template Architecture
 
-**When to use:** Always. Multiple detector categories will produce overlapping matches (e.g., an email address contains a hostname).
+Use askama's inline `source` attribute to embed the entire HTML template in Rust source code, compiled at build time:
 
-**Trade-offs:** Right-to-left replacement is simple and correct. Span merging prevents garbled output. Detector ordering does not matter because merging normalizes overlaps.
-
-**Example:**
-```go
-func DetectAll(text []byte, detectors []Detector) []Span {
-    var allSpans []Span
-    for _, d := range detectors {
-        allSpans = append(allSpans, d.Detect(text)...)
-    }
-    // Sort by start position, merge overlapping
-    return mergeSpans(allSpans)
+```rust
+#[derive(askama::Template)]
+#[template(ext = "html", source = r#"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>logtok v{{ version }} -- Documentation</title>
+  <style>{{ css }}</style>
+</head>
+<body>
+  <header>...</header>
+  <nav>
+    <a href="#install">Install</a>
+    <a href="#quickstart">Quick Start</a>
+    {% for cmd in commands %}
+    <a href="#{{ cmd.name }}">{{ cmd.name }}</a>
+    {% endfor %}
+    <a href="#categories">Categories</a>
+  </nav>
+  <main>
+    <section id="install">...</section>
+    <section id="quickstart">...</section>
+    {% for cmd in commands %}
+    <article id="{{ cmd.name }}">
+      <h2>logtok {{ cmd.name }}</h2>
+      <p>{{ cmd.about }}</p>
+      <table>
+      {% for arg in cmd.args %}
+        <tr>
+          <td><code>{% if let Some(s) = arg.short %}-{{ s }}, {% endif %}{% if let Some(l) = arg.long %}--{{ l }}{% endif %}</code></td>
+          <td>{{ arg.help }}</td>
+          {% if let Some(d) = arg.default %}<td>{{ d }}</td>{% endif %}
+        </tr>
+      {% endfor %}
+      </table>
+    </article>
+    {% endfor %}
+    <section id="categories">...</section>
+  </main>
+  <script>{{ js }}</script>
+</body>
+</html>
+"#)]
+struct DocsTemplate {
+    version: String,
+    css: String,
+    js: String,
+    commands: Vec<CommandInfo>,
+    categories: Vec<CategoryInfo>,
 }
+```
 
-func ReplaceSpans(text []byte, spans []Span, vault *Vault) []byte {
-    // Process right-to-left to preserve offsets
-    sort.Slice(spans, func(i, j int) bool {
-        return spans[i].Start > spans[j].Start
-    })
-    result := make([]byte, len(text))
-    copy(result, text)
-    for _, span := range spans {
-        token := vault.GetOrCreate(span.Original, span.Category)
-        result = replaceRange(result, span.Start, span.End, token)
-    }
-    return result
+**Why askama over format!():** The HTML template is 100-200+ lines with loops, conditionals, and HTML escaping requirements. `format!()` becomes unreadable and error-prone at this scale. askama provides:
+- Auto-escaping of dynamic content (prevents XSS)
+- Jinja-like syntax natural for HTML authors
+- Compile-time template validation
+- Zero runtime template parsing overhead
+
+**Why inline `source` over external file:** Keeps everything in one `.rs` file. No `templates/` directory to manage. If the template grows past ~200 lines, move to a `templates/docs.html` file and use askama's `path` attribute instead -- this is a readability decision, not architectural.
+
+### Single-File HTML Requirements
+
+The output must be self-contained:
+- All CSS in `<style>` tags (no external stylesheets)
+- All JS in `<script>` tags (no external scripts)
+- No external images (use CSS for any visual elements)
+- Works from `file://` URLs, can be committed to repos, shared on Slack
+
+### CSS Architecture
+
+Use CSS custom properties for theming:
+
+```css
+:root {
+  --bg: #ffffff; --text: #1a1a2e; --accent: #0066cc;
+  --code-bg: #f5f5f5; --border: #e0e0e0;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1a1a2e; --text: #e0e0e0; --accent: #66b3ff;
+    --code-bg: #2a2a3e; --border: #444;
+  }
 }
 ```
 
-### Pattern 4: Deterministic Token Generation
+No CSS framework. ~100-150 lines covering layout, typography, code blocks, responsive design.
 
-**What:** The same sensitive value always maps to the same token within a session (and across sessions if the vault persists). Tokens are human-readable placeholders that preserve category context: `[CRED_001]`, `[IP_003]`, `[EMAIL_012]`. This lets Claude reason about relationships ("the same IP appears in both error messages") without seeing the actual value.
+### JavaScript (Minimal)
 
-**When to use:** Always. Non-deterministic tokens would destroy the ability to correlate across log entries.
+Two features requiring JS:
+1. **Copy buttons** (~15 lines): `navigator.clipboard.writeText()` on code blocks
+2. **Smooth scroll** (~5 lines): `scrollIntoView({ behavior: 'smooth' })` for nav links
 
-**Trade-offs:** Deterministic mapping means the vault must be consulted on every replacement (lookup or insert). This is fast since the vault is in-memory with periodic flush to encrypted disk. Token format with category prefix aids Claude's diagnosis.
+Total: ~20-30 lines. No build tools, no bundler, no framework.
 
-### Pattern 5: Encrypted Vault with Session Persistence
-
-**What:** Token-to-original mappings stored in an AES-256-GCM encrypted file. Key derived from a user-provided passphrase via Argon2id (or system keyring). Vault loaded into memory at start, flushed to disk on changes. Separate vault files per project/context.
-
-**When to use:** Always. The vault is the security-critical component.
-
-**Trade-offs:** File-based vault is simple and portable (works in Docker, K8s, CI). SQLite would add a dependency for marginal benefit at v1 scale. Argon2id is the current best practice for key derivation. System keyring integration is a nice-to-have for developer ergonomics but not required for v1.
-
-## Data Flow
-
-### Primary Flow: Tokenize-Diagnose-Detokenize
+## New Module Structure
 
 ```
-[Log File on Disk]
-        │
-        ▼
-  ┌─────────────┐
-  │ Source Reader│ ── reads file in buffered chunks
-  └──────┬──────┘
-         │ raw bytes
-         ▼
-  ┌─────────────┐
-  │Block Splitter│ ── splits at log entry boundaries
-  └──────┬──────┘
-         │ Block (complete log entries)
-         ▼
-  ┌─────────────┐
-  │  Detection  │ ── runs all detectors, produces spans
-  │  Engine     │
-  └──────┬──────┘
-         │ []Span (start, end, category)
-         ▼
-  ┌─────────────┐       ┌──────────────┐
-  │   Token     │ ◄───► │  Token Vault │ (lookup or create token)
-  │  Replacer   │       │  (in-memory) │
-  └──────┬──────┘       └──────┬───────┘
-         │ tokenized text       │ periodic flush
-         ▼                      ▼
-  ┌─────────────┐       ┌──────────────┐
-  │  Tokenized  │       │  Encrypted   │
-  │  Output     │       │  Vault File  │
-  └──────┬──────┘       └──────────────┘
-         │
-         ▼ (if diagnose mode)
-  ┌─────────────┐
-  │ Claude API  │ ── sends tokenized logs + diagnosis prompt
-  │ Client      │
-  └──────┬──────┘
-         │ Claude's response (contains tokens)
-         ▼
-  ┌──────────────┐      ┌──────────────┐
-  │ De-tokenizer │ ◄──  │  Token Vault │ (reverse lookup)
-  └──────┬───────┘      └──────────────┘
-         │ readable diagnosis
-         ▼
-  ┌──────────────┐
-  │   Output     │ ── bullet summary or markdown report
-  │  Formatter   │
-  └──────────────┘
+src/
+  cli.rs          # MODIFIED: add const STYLES, add Docs subcommand
+  main.rs         # MODIFIED: add Docs match arm
+  docs.rs         # NEW: ~300-400 lines
+    - generate_docs()     Public entry point
+    - extract_commands()  Walk clap Command tree -> Vec<CommandInfo>
+    - DocsTemplate        askama struct with inline HTML template
+    - CSS_CONTENT         const &str with embedded CSS
+    - JS_CONTENT          const &str with embedded JS
+  ... (all existing modules unchanged)
 ```
 
-### Key Data Flows
+## Build Order
 
-1. **Tokenize flow:** File -> Block Splitter -> Detection -> Replacement -> Tokenized output. Vault is consulted for every replacement to ensure deterministic tokens. Output can be written to file, piped, or copied to clipboard.
+**Build colored CLI help FIRST, then HTML docs.** Rationale:
 
-2. **Diagnose flow:** Runs tokenize flow first, then sends tokenized output to Claude API, receives diagnosis, de-tokenizes the response, formats output. This is the primary user workflow.
+1. Colored help is simpler (~15 lines) and validates clap's `Styles` API
+2. Colored help modifies `cli.rs` -- do this first so HTML docs builds on stable CLI
+3. HTML docs requires understanding the `Command` introspection API -- colored help builds familiarity with clap's builder types
+4. The `Docs` subcommand addition happens after colored help is stable
 
-3. **Vault flow:** In-memory hashmap (original -> token, token -> original) loaded from encrypted file at startup. New mappings added during tokenization. Flushed to encrypted file at end of run (or periodically for long runs). Never transmitted over network.
-
-4. **De-tokenize flow:** Scans Claude's response for token patterns (regex: `\[CATEGORY_\d+\]`), looks up each in vault, replaces with original. Must handle tokens appearing in prose, code blocks, bullet points.
-
-## Scaling Considerations
-
-| Concern | Small files (<100MB) | Large files (1-10GB) | Massive files (>10GB) |
-|---------|---------------------|---------------------|----------------------|
-| Memory | Load entire file | Block-based, 1-4MB blocks | Block-based, parallel block processing |
-| Detection | Single-pass regex | Per-block regex, merge cross-boundary matches | Same + worker pool for parallel detection |
-| Vault | In-memory map | In-memory map (millions of entries is fine) | In-memory map, consider LRU if 100M+ unique tokens |
-| Claude API | Single request | Chunked requests (API has input limits) | Summarize per-block, send aggregated tokenized context |
-
-### Scaling Priorities
-
-1. **First bottleneck -- Detection regex performance:** Regex compilation should happen once at startup, not per block. Use compiled regex sets. Pre-filter lines that cannot contain sensitive data (e.g., blank lines, known-safe prefixes). Google RE2-style engines (linear time) over backtracking PCRE for safety.
-
-2. **Second bottleneck -- Claude API context window:** Large log files will exceed Claude's context window. Strategy: send most relevant blocks (error context, stack traces) rather than entire files. The block splitter should tag blocks with relevance signals (contains ERROR, FATAL, exception keywords).
-
-3. **Third bottleneck -- Vault size for extremely large log sets:** Unlikely to be a real problem. A million unique tokens is ~100MB of memory. Only becomes an issue at truly extreme scale.
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Loading Entire File into Memory
-
-**What people do:** `ioutil.ReadAll(file)` or equivalent, process the whole thing at once.
-**Why it's wrong:** Fails on multi-GB log files. OOM kills the process. Violates the core performance constraint.
-**Do this instead:** Block-based processing from day one. Even if v1 only handles small files, the block-based architecture must be the foundation, not bolted on later.
-
-### Anti-Pattern 2: Sequential Single-Pass Detection
-
-**What people do:** Run one massive regex with alternation for all patterns: `(email|ip|key|...)`.
-**Why it's wrong:** One giant regex is unmaintainable, hard to debug, and a nightmare to extend. Adding a new pattern means modifying a monolithic expression.
-**Do this instead:** Separate detectors per category, each with their own pattern set. Run them independently, merge spans afterward. Easier to test, debug, and extend.
-
-### Anti-Pattern 3: Non-Deterministic Token Assignment
-
-**What people do:** Generate random tokens for each match without checking if the value was seen before.
-**Why it's wrong:** The same IP appearing in 50 log lines gets 50 different tokens. Claude cannot correlate them. The diagnosis becomes useless ("IP_001 failed to connect to IP_047" when they are the same IP).
-**Do this instead:** Vault-backed deterministic assignment. Same original value always yields the same token.
-
-### Anti-Pattern 4: Tight Coupling to Claude API
-
-**What people do:** Hard-code Claude API calls throughout the codebase.
-**Why it's wrong:** Makes testing impossible without API calls. Prevents supporting other LLMs. Makes the tokenization step dependent on the diagnosis step.
-**Do this instead:** Tokenization is a standalone capability. The Claude client is behind an interface. The `tokenize` command works independently of the `diagnose` command.
-
-### Anti-Pattern 5: Storing Vault Unencrypted
-
-**What people do:** Write token mappings as plaintext JSON for convenience during development, plan to "add encryption later."
-**Why it's wrong:** The vault IS the sensitive data. If someone gets the vault, they can reverse every token. "Later" often means "after the first security incident."
-**Do this instead:** Encrypt from day one. AES-256-GCM is straightforward to implement. The development cost is minimal compared to the security risk.
-
-## Integration Points
-
-### External Services
-
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Claude API | HTTPS REST client with exponential backoff | Token-based auth; respect rate limits; stream responses for large outputs |
-| File System | io.Reader/io.Writer abstractions | Must handle symlinks, permissions, large files; cross-platform path handling |
-| System Keyring (optional) | OS-specific keyring APIs | macOS Keychain, Windows Credential Manager, Linux Secret Service; nice-to-have for vault key storage |
-| Clipboard | OS-specific clipboard APIs | Fallback output method; `pbcopy`/`xclip`/`clip.exe` |
-
-### Internal Boundaries
-
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| CLI -> Pipeline | Direct function calls | CLI constructs pipeline with configured components, calls Run() |
-| Pipeline -> Detectors | Interface method calls | Pipeline owns detector registry; detectors are stateless |
-| Pipeline -> Vault | Interface method calls | Vault is shared across blocks; thread-safe if parallel processing |
-| Diagnose -> Claude Client | Interface method calls | Client interface allows mocking for tests |
-| Diagnose -> De-tokenizer | Direct function calls | De-tokenizer takes vault reference and response text |
-
-### Suggested Build Order (Dependencies)
-
-Build order follows the dependency chain from bottom up:
+### Phase Sequence
 
 ```
-Phase 1: Foundation (no external dependencies)
-  1. Token Vault (crypto + storage) -- everything depends on this
-  2. Detection Engine + Detector interface
-  3. Credential Detector + Infrastructure Detector (most common patterns)
+Phase 1: Colored CLI Help
+  1. Add const STYLES to cli.rs
+  2. Apply styles = STYLES attribute
+  3. Add styled examples via after_long_help
+  4. Test: logtok --help shows colored output
+  5. Test: NO_COLOR=1 logtok --help shows plain output
+  6. Test: piped output has no ANSI codes
 
-Phase 2: Core Pipeline
-  4. Block Splitter (depends on: log format understanding)
-  5. Token Replacer (depends on: Detection Engine + Vault)
-  6. File Source Reader (depends on: Block Splitter)
-  7. Pipeline Orchestrator (depends on: Source + Detection + Replacer)
-  8. CLI Tokenize Command (depends on: Pipeline)
-
-Phase 3: Diagnosis Loop
-  9. Claude API Client (depends on: nothing internal, but needs tokenized output)
-  10. De-tokenizer (depends on: Vault)
-  11. Output Formatter (depends on: nothing)
-  12. CLI Diagnose Command (depends on: Pipeline + Claude Client + De-tokenizer + Formatter)
-
-Phase 4: Completeness
-  13. PII Detector + Business Logic Detector
-  14. Clipboard output
-  15. Configuration management
-  16. Claude Code skill integration
+Phase 2: HTML Documentation Generation
+  1. cargo add askama (one new dependency)
+  2. Add Commands::Docs to cli.rs
+  3. Create docs.rs with extract_commands()
+  4. Create askama DocsTemplate with inline HTML/CSS/JS
+  5. Wire up in main.rs
+  6. Test: logtok docs produces valid HTML
+  7. Test: HTML renders correctly in browser (both themes)
+  8. Test: Copy buttons work
+  9. Test: Command reference matches --help content
 ```
 
-**Rationale:** The vault and detection engine are the architectural foundation. Build them first so they can be tested in isolation. The pipeline assembles these pieces. Claude integration comes after tokenization works standalone -- this validates the core value proposition before adding network dependencies.
+## Anti-Patterns to Avoid
+
+### Anti-Pattern 1: External CSS/JS Files
+**What:** Referencing external stylesheets or scripts in the generated HTML.
+**Why bad:** Breaks the single-file requirement. File won't render when opened locally or shared.
+**Instead:** Embed all CSS in `<style>` and all JS in `<script>` tags.
+
+### Anti-Pattern 2: Build-Time Generation with build.rs
+**What:** Generating HTML in a build script and embedding it in the binary.
+**Why bad:** Requires the CLI struct to be accessible from build.rs (needs crate restructuring). Generated HTML becomes stale if help text changes without rebuild.
+**Instead:** Generate at runtime via `logtok docs`. Milliseconds of cost, zero build complexity.
+
+### Anti-Pattern 3: Parsing --help Output as Text
+**What:** Running `logtok --help` and parsing the text output to extract command info.
+**Why bad:** Fragile, breaks when help formatting changes, loses structured data (types, defaults, required flags).
+**Instead:** Use `Cli::command()` introspection API directly.
+
+### Anti-Pattern 4: Duplicating Help Text
+**What:** Writing command descriptions in both cli.rs doc comments AND in the HTML template.
+**Why bad:** Two sources of truth. They will drift apart.
+**Instead:** Single source of truth in cli.rs doc comments. HTML generation reads from `Command::get_about()` / `get_long_about()`.
+
+### Anti-Pattern 5: Hardcoding ANSI Escape Codes in Help Strings
+**What:** Manually embedding `\x1b[32m` escape codes in clap help text.
+**Why bad:** Breaks on terminals that don't support those codes. Breaks when piped. Breaks NO_COLOR compliance.
+**Instead:** Use clap's `Styles` API which handles terminal detection automatically.
 
 ## Sources
 
-- [Vector Components - Source, Transform, Sink pattern](https://vector.dev/components/)
-- [Elastic Observability - PII detection with NER and regex in logs](https://www.elastic.co/observability-labs/blog/pii-ner-regex-assess-redact-part-1)
-- [HashiCorp Vault - Tokenization transform patterns](https://developer.hashicorp.com/vault/docs/secrets/transform/tokenization)
-- [OneUptime - Data masking pipeline for PII redaction](https://oneuptime.com/blog/post/2026-02-06-data-masking-pipeline-pii-redaction/view)
-- [HashiCorp go-plugin - Plugin system over RPC for Go](https://github.com/hashicorp/go-plugin)
-- [OneUptime - High-throughput data ingestion pipeline in Rust](https://oneuptime.com/blog/post/2026-01-25-high-throughput-data-ingestion-pipeline-rust/view)
-- [Hoop.dev - Mask PII in production logs best practices](https://hoop.dev/blog/mask-pii-in-production-logs-data-masking-best-practices)
-
----
-*Architecture research for: Log tokenization and privacy-preserving log diagnosis CLI*
-*Researched: 2026-04-13*
+- [clap Styles API](https://docs.rs/clap/latest/clap/builder/struct.Styles.html) -- Authoritative, current documentation
+- [clap Command introspection](https://docs.rs/clap/latest/clap/struct.Command.html) -- get_subcommands(), get_arguments()
+- [clap ColorChoice](https://docs.rs/clap/latest/clap/enum.ColorChoice.html) -- NO_COLOR/CLICOLOR handling
+- [askama inline templates](https://askama.rs/en/latest/creating_templates.html) -- source attribute documentation
+- [CSS prefers-color-scheme](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme) -- dark/light theme standard
+- [Rust CLI documentation patterns](https://rust-cli.github.io/book/in-depth/docs.html) -- Official CLI book

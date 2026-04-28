@@ -1,135 +1,101 @@
-# Feature Landscape
+# Feature Landscape: v2.0 Developer Documentation
 
-**Domain:** Log tokenization and privacy-preserving log diagnosis via LLM
-**Researched:** 2026-04-13
+**Domain:** CLI help styling and auto-generated HTML documentation for a Rust CLI tool
+**Researched:** 2026-04-28
+**Milestone focus:** Colored CLI help output + auto-generated HTML docs page
 
 ## Table Stakes
 
-Features users expect. Missing = product feels incomplete or untrustworthy.
+Features developers and DevOps engineers expect from a polished CLI tool's help and documentation. Missing any of these makes the tool feel unfinished or amateur.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Credential detection** (API keys, tokens, passwords, connection strings) | Core promise of the tool; secrets-patterns-db has 1600+ patterns as a baseline | Medium | Use established regex databases (secrets-patterns-db, Gitleaks patterns) as foundation. AWS keys, JWT, Bearer tokens, MongoDB URIs, etc. |
-| **PII detection** (emails, IP addresses, usernames, phone numbers) | Basic privacy compliance expectation; every competing tool does this | Medium | Regex-based for structured patterns (email, IP, phone). Names/free-text PII are harder -- flag for v2 NLP. |
-| **Infrastructure detail detection** (hostnames, file paths, internal URLs, port numbers) | Logs are full of internal topology; leaking this is a security risk | Medium | Path patterns vary by OS. Internal domain patterns need user-configurable rules. |
-| **Consistent/deterministic tokenization** | Same IP appearing 50 times in a log must map to the same token so Claude can correlate patterns. Without this, diagnosis is useless. | Medium | Requires a token vault/map. Same value -> same token within and across sessions. John Snow Labs and others confirm this is standard practice. |
-| **Reversible de-tokenization** | The entire value proposition: get Claude's answer, map tokens back to real values so the engineer can act on it | Low | Straightforward lookup from token map. Must handle tokens appearing in Claude's natural language output, not just structured fields. |
-| **Structured JSON log support** | Most modern applications emit JSON logs; not supporting them is a dealbreaker | Low | Parse JSON, walk values, tokenize sensitive fields. Preserve JSON structure. |
-| **Unstructured/plain text log support** | Legacy apps, syslogs, custom formats -- users will have these | Medium | Line-by-line regex scanning. Must not break log readability. |
-| **Multi-line log entry handling** (stack traces, exception blocks) | Stack traces are the primary thing engineers want Claude to diagnose. Splitting them into separate entries destroys context. | High | Detect start/continuation patterns. Java stack traces, Python tracebacks, .NET exceptions, Go panics. Stateful parsing required. |
-| **Large file handling** (block/stream processing) | Production logs are often GBs; loading entire file into memory is not viable | High | Block-based processing with bounded memory. The project already specifies this as a constraint. |
-| **Cross-platform CLI binary** | Engineers work on Mac, Linux, Windows; SREs need it on servers and in containers | Medium | Single binary, zero dependencies. Go or Rust both excel here. |
-| **Clipboard/paste output** | Minimum viable way to get tokenized content to Claude without API integration | Low | Copy tokenized output to clipboard or stdout for manual paste. |
-| **Clear token format** | Tokens must be obviously not real data (e.g., `[TOKEN_IP_001]` not `192.168.2.99`) so Claude and humans can distinguish them | Low | Use category-prefixed tokens: `[TOK_IP_001]`, `[TOK_KEY_001]`, `[TOK_EMAIL_001]`. Aids Claude's understanding of what type each token represents. |
+| **Colored section headers in --help** | Every modern Rust CLI (cargo, ripgrep, bat, starship) uses colored help. Plain white text signals "hobby project." | Low | clap 4.6 has built-in `Styles` API with `Command::styles()`. Zero new dependencies needed. Use `Styles::styled()` as base, customize header/usage/literal colors. |
+| **Bold command names and flags** | Users scan for flags visually. Bold makes `--output`, `--dry-run` pop out from descriptions. Standard in cargo, ripgrep. | Low | Part of clap's `Styles` -- `literal()` method controls flag/command styling. Already supported via ANSI bold. |
+| **Colored usage line** | The `Usage: logtok tokenize <FILE>` line is the first thing users look at. Coloring it separately improves scannability. | Low | `Styles::styled().usage(AnsiColor::Green.on_default().bold())` -- single line of code. |
+| **Respect NO_COLOR / --color flag** | The NO_COLOR standard (no-color.org) is expected by CLI-savvy users. Tools that force color on piped output break scripts. | Low | clap's `ColorChoice::Auto` already handles this by default. Verify it respects `NO_COLOR` env var. |
+| **Command reference in HTML docs** | Any docs page for a CLI tool must list all commands, flags, and their descriptions. Without this, the page is useless. | Medium | Extract from clap's `Command` tree at runtime using introspection API. |
+| **Copy-to-clipboard buttons on code blocks** | Every developer docs site (GitHub, MDN, Tailwind, Vercel) has these. Developers expect to click-copy install commands and examples. | Low | ~15 lines of JavaScript using `navigator.clipboard.writeText()`. No library needed. |
+| **Install instructions in HTML docs** | First thing a new user looks for. Must cover the primary install methods (cargo install, binary download). | Low | Static content. Template with platform-specific commands. |
+| **Quick start / getting started flow** | Users want to go from install to first successful tokenization in under 2 minutes. A linear walkthrough is expected. | Low | 3-4 step guide: install, tokenize a file, view output, detokenize. Static content with copy-able commands. |
+| **Responsive/readable HTML layout** | Developers read docs on laptops, tablets, and phones. A docs page that requires horizontal scrolling is unusable. | Low | Standard CSS max-width container, responsive typography. No framework needed -- ~50 lines of CSS. |
 
 ## Differentiators
 
-Features that set this product apart. Not expected, but valued.
+Features that elevate logtok's documentation beyond the baseline. Not expected, but signal quality and care.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **LLM-native diagnosis loop** (tokenize -> send to Claude -> de-tokenize response) | No existing tool does the full round-trip. Caviard.ai does browser-level redaction for chat, but nothing exists for CLI log diagnosis workflows. This IS the product. | High | Requires Claude API integration, prompt engineering for diagnosis, and robust de-tokenization of free-text LLM responses. |
-| **Claude Code skill integration** | Engineers already using Claude Code get seamless `/diagnose-logs` experience without leaving their workflow | Medium | MCP tool or Claude Code custom command that wraps the tokenize-diagnose-de-tokenize loop. |
-| **Encrypted persistent token store** | Tokens persist across sessions so related log investigations maintain consistent mappings. Running diagnosis on Monday's logs then Tuesday's logs keeps `[TOK_IP_001]` meaning the same IP. | Medium | AES-256 encrypted local file. Key derived from user passphrase or machine identity. |
-| **Category-aware tokenization** | Not just "replace sensitive data" but "replace and label by category" -- Claude gets `[TOK_CREDENTIAL_001]` not `[REDACTED]`, preserving semantic context for better diagnosis | Low | Map detected patterns to categories. Improves LLM diagnosis quality significantly because Claude knows what TYPE of thing was redacted. |
-| **Custom pattern rules** | Users add org-specific patterns (internal service names, custom ID formats, proprietary field names) via config file | Medium | YAML/TOML config with regex patterns, category labels, and optional format-preservation rules. |
-| **Diagnosis output formats** (bullet summary + detailed markdown) | Engineers want quick answers AND detailed reports depending on context | Low | Template-based output formatting. Bullet summary for Slack, markdown for tickets/docs. |
-| **Confidence scoring on detections** | Show users which tokenizations are high-confidence (regex match on AWS key pattern) vs low-confidence (heuristic match on possible hostname) so they can review before sending | Medium | Score based on pattern specificity. Let users set a threshold -- auto-tokenize above it, flag below it. |
-| **Dry-run / preview mode** | Show what WOULD be tokenized without actually sending anything. Critical for building trust. | Low | Display highlighted diff of original vs tokenized. User confirms before proceeding. |
-| **Token map export/import** | Share token maps between team members working on the same incident (encrypted, of course) | Low | Export encrypted token map file. Import on another machine. Enables collaborative debugging. |
+| **`logtok docs` subcommand** | Self-documenting CLI -- generate docs from the tool itself. Ensures docs never drift from actual CLI behavior. Very few CLI tools do this. | Medium | New clap subcommand. Walks `Command` tree, generates HTML with askama. Outputs single .html file. |
+| **Single-file HTML output** (no external assets) | One file, zero dependencies, works offline. Drop it in a repo, open in browser, done. No static site generator, no build step. | Medium | Embed CSS and JS inline in the HTML via askama template. |
+| **Styled examples section in --help** | clap's default help doesn't render examples prominently. Adding a visually distinct examples block (like cargo does) helps new users. | Low | Use clap's `after_help` or `after_long_help` with ANSI-styled text. |
+| **Dark/light theme support in HTML** | Developer preference. Many developers use dark mode and docs pages that blind them get closed. | Low | CSS `prefers-color-scheme` media query. ~20 lines of additional CSS. Zero JavaScript needed. |
+| **Anchor links for each command** | Deep-linking to `docs.html#tokenize` or `docs.html#detokenize` lets users bookmark and share specific command references. | Low | Standard HTML id attributes on section headers. |
+| **Category reference table in HTML docs** | logtok's 19 token categories are unique to this tool. A clear reference table showing each category, what it detects, and example patterns is a differentiator. | Low | Static content generated from the detector module's category definitions. |
+| **Version-stamped docs** | Generated HTML shows which logtok version it was generated from. Prevents confusion when docs are shared across teams. | Low | Embed `env!("CARGO_PKG_VERSION")` in generated output. |
 
 ## Anti-Features
 
-Features to explicitly NOT build. These are tempting but wrong for v1.
+Features to explicitly NOT build for this milestone. Tempting but wrong.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **NLP/ML-based PII detection** | Requires Python runtime (kills single-binary goal), adds latency, model dependency, and false positive complexity. Microsoft Presidio is great but it's a Python framework -- wrong fit for a Go/Rust CLI. | Use regex + pattern databases for v1. Flag NLP as v2 exploration if regex detection proves insufficient. |
-| **Log storage/persistence** | Scope creep into log management territory (Elastic, Loki, Datadog). Tool is a tokenizer, not a log store. | Tokenize and pass through. Users bring their own log source and destination. |
-| **Real-time log tailing/streaming** | Complex stateful processing, partial-line buffering, reconnection logic. v1 needs to nail file-based first. | Block-based file processing in v1 lays architectural foundation. Streaming is explicitly v2 per PROJECT.md. |
-| **Web UI or dashboard** | CLI-first tool. Web UI adds massive surface area, hosting complexity, and security concerns (now the token map is in a browser). | CLI with clean stdout/stderr. Structured output (JSON) enables others to build UIs if needed. |
-| **Log source connectors** (Elastic, CloudWatch, Datadog, Splunk) | Each connector is its own project. Premature before the core loop is proven. | Accept file input and stdin. Users pipe/download logs themselves. Connectors are explicitly v2 per PROJECT.md. |
-| **Format-preserving tokenization** | FPT makes tokens look like real data (fake IP for real IP). This is WRONG for LLM diagnosis -- Claude needs to know it's a token, not confuse it with real data. | Use obvious token labels like `[TOK_IP_001]`. The whole point is Claude treats them as opaque references. |
-| **Automatic secret validation** (calling APIs to verify if detected key is live) | Security nightmare -- tool would be making auth requests with potentially stolen credentials. Also requires network access. | Detect patterns only. Never attempt to use/validate detected secrets. |
-| **Multi-language NER for name detection** | Enormous complexity for detecting names in free text across languages. Regex can't do this well and NLP is out of scope (see above). | Detect structured PII (emails, IDs, phones) via regex. Offer custom patterns for org-specific name fields. |
+| **Full static site (multi-page docs)** | Massive scope creep. mdBook or mkdocs sites require build pipelines, hosting, CI integration, theme maintenance. logtok has 3 commands -- a static site is overkill. | Single-file HTML. One `logtok docs` command, one output file. |
+| **Man page generation** | man pages are a Unix tradition but modern developers use `--help` and web docs. Adding clap_mangen is low effort but low value for the target audience. | Stick with `--help` and HTML docs. Add man pages later if requested. |
+| **Shell completion generation** | Useful but orthogonal to docs milestone. Different feature, different testing surface. | Defer to a future milestone. clap supports this but it deserves its own scope. |
+| **PDF documentation** | No one reads CLI tool docs as PDFs. Enterprise checkbox thinking. | HTML is the universal format. |
+| **Custom theme engine for help output** | clap-help crate offers rich terminal rendering but does NOT support subcommands (confirmed limitation). logtok uses subcommands. | Use clap's built-in `Styles` API. Supports subcommands, zero-dependency. |
+| **Internationalization (i18n)** | Premature. English-only is fine for a developer tool at this stage. | All docs in English. |
+| **Auto-publish docs to GitHub Pages** | CI/CD integration for docs publishing is a separate concern. This milestone is about generating the HTML. | Generate the file. Users host it however they want. |
+| **Colored tokenize/detokenize output** | Tempting to colorize tokenized output, but it complicates piping, redirection, and clipboard copy. | Keep tokenize/detokenize output plain text. Color only in `--help` and status messages. |
+| **Interactive web playground** | WASM compilation, massive binary size, whole new attack surface. Minimal value for a tokenization tool. | Provide copy-paste examples that users run locally. |
+| **Syntax highlighting in HTML code blocks** | Prism.js or highlight.js adds weight and complexity for marginal gain on ~10 code snippets. Plain `<pre><code>` with monospace font and background color is sufficient. | Style code blocks with CSS only. No JS syntax highlighter. |
 
 ## Feature Dependencies
 
 ```
-Credential detection ─┐
-PII detection ─────────┤
-Infra detail detection ┼──> Core tokenization engine ──> Token map store
-Custom patterns ───────┘           │
-                                   │
-           ┌───────────────────────┘
-           │
-           v
-   Consistent tokenization ──> Encrypted persistent store
-           │
-           v
-   ┌───────┴────────┐
-   │                 │
-   v                 v
-Clipboard output   Claude API integration
-                     │
-                     v
-              De-tokenize response
-                     │
-                     v
-              Output formatting (bullet / markdown)
-                     │
-                     v
-              Claude Code skill integration
+clap Styles const (already available in clap 4.6)
+       |
+       v
+Colored --help output  (zero new dependencies)
+
+clap Command introspection API
+       |
+       v
+Extract command names, descriptions, args, flags, defaults
+       |
+       v
+askama template (inline source, embedded CSS/JS)
+       |
+       v
+`logtok docs` subcommand --> single-file HTML output
 ```
 
-Key dependency chains:
-- Detection patterns must exist before tokenization engine works
-- Token map must exist before de-tokenization works
-- Claude API integration requires tokenization to be solid first
-- Claude Code skill requires the Claude API integration to work
-- Dry-run/preview requires the detection engine but NOT the API integration
-- Encrypted store requires token map but can be added after basic in-memory map works
+No circular dependencies. Colored help and HTML docs are independent features that share only the clap dependency.
 
-## MVP Recommendation
+## MVP Recommendation for v2.0
 
-**Phase 1 -- Core tokenization (no LLM yet):**
-1. Credential detection (highest security value)
-2. PII detection (emails, IPs)
-3. Infrastructure detail detection
-4. Consistent deterministic tokenization with in-memory map
-5. Structured JSON + unstructured text support
-6. Category-aware token labels
-7. Dry-run preview mode
-8. Cross-platform binary
+### Phase 1 -- Colored CLI Help (smallest useful increment)
 
-**Phase 2 -- Diagnosis loop:**
-1. Claude API integration (tokenize -> send -> receive)
-2. De-tokenize Claude's response
-3. Output formatting (bullet + markdown)
-4. Clipboard/paste fallback
-5. Encrypted persistent token store
+1. Define `const STYLES` with color scheme
+2. Add `styles = STYLES` attribute to `Cli` derive macro
+3. Add styled examples via `after_long_help`
+4. Verify NO_COLOR compliance
+5. Test on Windows Terminal, macOS Terminal, common Linux terminals
 
-**Phase 3 -- Developer experience:**
-1. Claude Code skill integration
-2. Multi-line/stack trace handling (upgrade from basic to robust)
-3. Custom pattern rules via config
-4. Confidence scoring on detections
-5. Token map export/import
+**Rationale:** Immediate visual improvement, zero new dependencies, can ship in hours.
 
-**Defer to v2:** NLP-based detection, streaming, connectors, log tailing
+### Phase 2 -- HTML Documentation Generation
 
-**Rationale:** Build trust by proving tokenization is thorough and correct (Phase 1) before connecting to external services (Phase 2). Engineers need to verify what gets tokenized before they'll trust it with their production logs. The dry-run preview in Phase 1 is critical for this trust-building.
+1. Add `Docs` subcommand to `Commands` enum
+2. Walk clap `Command` tree to extract all commands, flags, descriptions
+3. Create askama inline template with embedded CSS (responsive, dark/light theme)
+4. Add copy-to-clipboard buttons on all code blocks
+5. Include: install guide, quick start flow, full command reference, category reference table
+6. Embed version stamp from Cargo.toml
 
-## Sources
+**Rationale:** The `docs` subcommand is the headline feature -- self-documenting CLI that never drifts from actual behavior.
 
-- [Secrets Patterns DB - 1600+ regex patterns for secret detection](https://github.com/mazen160/secrets-patterns-db)
-- [Microsoft Presidio - PII detection framework](https://microsoft.github.io/presidio/)
-- [Caviard.ai - Browser-based PII redaction for LLMs](https://www.caviard.ai)
-- [DZone - Reversible Data Anonymization for LLMs](https://dzone.com/articles/llm-pii-anonymization-guide)
-- [John Snow Labs - Consistent Tokenization and Obfuscation](https://www.johnsnowlabs.com/consistent-linking-tokenization-and-obfuscation-for-regulatory-grade-de-identification/)
-- [Grafana Alloy - Log secret redaction](https://grafana.com/blog/2025/03/20/how-to-redact-secrets-from-logs-with-grafana-alloy-and-loki/)
-- [OpenObserve - 144 prebuilt redaction rules](https://openobserve.ai/blog/redact-sensitive-data-in-logs/)
-- [Datadog - Multi-line logging best practices](https://www.datadoghq.com/blog/multiline-logging-guide/)
-- [BetterStack - Logging practices for safeguarding sensitive data](https://betterstack.com/community/guides/logging/sensitive-data/)
-- [Skyflow - Keeping sensitive data out of logs](https://www.skyflow.com/post/how-to-keep-sensitive-data-out-of-your-logs-nine-best-practices)
-- [arxiv - Protecting Privacy in Software Logs](https://arxiv.org/html/2409.11313v2)
+### Defer
+
+- Man pages, shell completions, syntax highlighting JS, hosted docs, Markdown output

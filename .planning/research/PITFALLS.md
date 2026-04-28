@@ -1,280 +1,254 @@
-# Pitfalls Research
+# Domain Pitfalls: Colored CLI Help & Auto-Generated HTML Documentation
 
-**Domain:** Log tokenization and privacy-preserving log diagnosis
-**Researched:** 2026-04-13
+**Domain:** Adding documentation/DX features to an existing Rust CLI tool (logtok)
+**Researched:** 2026-04-28
 **Confidence:** HIGH
+**Milestone:** v2.0 Developer Experience
 
 ## Critical Pitfalls
 
-### Pitfall 1: Incomplete Sensitive Data Detection (False Negatives)
+### Pitfall 1: Windows cmd.exe ANSI Escape Code Breakage
 
 **What goes wrong:**
-Regex-based detection misses sensitive data that does not match predefined patterns. A custom API key format, a non-standard connection string, a base64-encoded credential embedded in a URL parameter, or a password that appears after an unexpected label ("secret=" instead of "password=") all slip through. The tokenized log then contains real secrets that get sent to Claude.
+Colored CLI help output renders as raw escape codes (`[0m[1mUsage[0m: logtok...`) instead of styled text on Windows. This happens in cmd.exe, older PowerShell versions, and certain CI/CD runners.
 
 **Why it happens:**
-Developers build patterns for the formats they know and test against logs they have seen. Real-world logs contain credentials in formats nobody anticipated: custom headers, environment-specific conventions, vendor-specific token formats, multi-line connection strings, or secrets split across log fields. The "unknown unknowns" problem is inherent to regex-only approaches.
+Windows has a fragmented terminal landscape. Windows Terminal supports ANSI natively. But cmd.exe requires the `ENABLE_VIRTUAL_TERMINAL_PROCESSING` console mode flag to be set via Win32 API -- not enabled by default. Piping output (`logtok --help | more`) disables the terminal flag.
 
-**How to avoid:**
-- Layer detection: regex patterns for known formats PLUS entropy-based detection for high-randomness strings (API keys, tokens) PLUS keyword-proximity heuristics ("key", "secret", "token", "password", "auth" near a value)
-- Ship with a conservative default: flag anything near sensitive keywords for tokenization rather than only matching exact patterns
-- Provide a user-configurable allowlist/denylist so teams can add custom patterns for their stack
-- Include a "dry-run" mode that highlights what WOULD be tokenized, letting users verify coverage before sending anything
+**Consequences:**
+- First impression for Windows users is a broken-looking tool
+- Help text becomes unreadable
+- CI/CD logs (GitHub Actions Windows runners) show garbage characters
 
-**Warning signs:**
-- Test suite only covers "happy path" formats (AWS keys, standard emails)
-- No entropy-based or heuristic detection layer exists
-- Users report finding real values in tokenized output during early testing
+**Prevention:**
+- clap's `color` feature (already enabled by default in logtok's Cargo.toml) handles color detection via `anstream`. It respects `NO_COLOR`, `CLICOLOR_FORCE`, and detects TTY via `IsTerminal`. Do NOT duplicate this logic.
+- Test on actual cmd.exe, not just Windows Terminal. Use `cmd.exe /c "logtok --help"` during development.
+- Verify piped output strips ANSI codes: `logtok --help | findstr Usage` should not contain escape sequences.
 
-**Phase to address:**
-Core detection engine phase (Phase 1). This must be right before any Claude integration exists, because once the send-to-LLM pipeline is built, users will assume it is safe.
+**Detection:** Raw `\x1b[` sequences visible in help output on Windows.
+
+**Phase to address:** Phase 1 (Colored CLI Help).
 
 ---
 
-### Pitfall 2: Broken Referential Integrity in Token Mappings
+### Pitfall 2: Clap Styles Override Breaking Readability on Light/Dark Terminals
 
 **What goes wrong:**
-The same sensitive value gets different tokens across different log lines, or across different processing blocks. When Claude receives the tokenized logs, it cannot correlate that the IP address on line 12 is the same server referenced on line 847. Claude's diagnosis becomes useless because it cannot trace error propagation across components or identify which "server" failed.
+Custom `Styles` configuration uses colors that look great on the developer's dark terminal but become invisible on light backgrounds, or vice versa.
 
 **Why it happens:**
-Block-based processing creates isolated contexts. If each block generates tokens independently without checking a shared mapping, the same value gets different tokens in different blocks. Similarly, random token generation without a lookup table inherently produces inconsistent mappings.
+Developers customize colors for their terminal theme without testing the opposite. A green that looks great on dark backgrounds becomes invisible on white backgrounds.
 
-**How to avoid:**
-- Use deterministic token generation: the same input value MUST always produce the same token within a session
-- Maintain a single shared token map across all blocks in a processing run, loaded at start and flushed at end
-- For block-based processing, the token map must be the synchronization point -- every block reads from and writes to the same map
-- Test explicitly: process a log file where the same IP appears in block 1 and block N, verify identical tokens
+**Prevention:**
+- Use only the 8 basic ANSI colors (not 256-color or RGB). Basic ANSI colors adapt to the terminal's palette -- terminals remap them for their theme.
+- Test with both dark and light terminal themes.
+- Never rely solely on color to convey meaning. Use bold/underline alongside color.
+- Avoid dim text -- many terminals render it identically to normal or make it unreadable.
+- Start with clap's `Styles::styled()` default and only modify what you need.
 
-**Warning signs:**
-- Token generation function takes no "existing map" parameter
-- Block processing has no shared state mechanism
-- De-tokenized output contains multiple different original values that map to what should be the same entity
-
-**Phase to address:**
-Core tokenization engine phase (Phase 1). The block processing architecture must include shared token map from day one -- retrofitting this is a near-rewrite.
+**Phase to address:** Phase 1 (Colored CLI Help).
 
 ---
 
-### Pitfall 3: Multi-line Log Entry Splitting
+### Pitfall 3: Generated HTML Documentation Drifting Out of Sync with CLI
 
 **What goes wrong:**
-Stack traces, multi-line JSON objects, and continuation lines get split across processing blocks or treated as separate log entries. A Java stack trace that spans 40 lines gets its first 10 lines in one block and the remaining 30 in another. Tokenization happens independently, breaking the trace's coherence. Worse, a sensitive value spanning two lines (like a base64-encoded cert) is only partially detected.
+The HTML documentation page shows commands, flags, or descriptions that do not match the actual CLI.
 
 **Why it happens:**
-Line-by-line or fixed-size block processing does not understand log entry boundaries. Most log formats lack explicit delimiters between entries -- you need heuristics (timestamp at line start, indentation for continuation, etc.) to group lines into logical entries.
+Three failure modes:
+1. Docs generated once, committed, never regenerated when CLI changes
+2. `logtok docs` command exists but no CI test verifies correctness
+3. Hand-written sections (install guide, quick start) reference outdated commands
 
-**How to avoid:**
-- Implement a log entry boundary detector that runs BEFORE tokenization: detect timestamps, indentation patterns, and known multi-line markers (e.g., "Caused by:", "at com.", JSON brace depth)
-- Block boundaries must respect log entry boundaries -- never split mid-entry
-- For block processing, use overlapping windows or a "carry-forward" buffer for incomplete entries at block edges
-- Test with real-world stack traces: Java (deeply nested), Python (traceback format), Node.js (async stack traces with "at" indentation)
+**Prevention:**
+- Generate the command reference at runtime from `Cli::command()` introspection. This guarantees the reference matches the binary.
+- Do not hardcode command names in the askama template. Use clap's `Command::get_subcommands()`, `Command::get_arguments()`, etc.
+- Add a CI test that runs `logtok docs --output /tmp/docs.html` and validates the output contains all current subcommands.
+- Keep hand-written content in the template but reference command names via clap introspection, not string literals.
 
-**Warning signs:**
-- Block size is defined in bytes/lines with no entry-awareness
-- No tests use multi-line log entries
-- Stack traces in tokenized output appear fragmented or partially tokenized
-
-**Phase to address:**
-Log parsing/block processing phase (Phase 1). The block processing architecture must be entry-aware from the start. Adding entry detection later means rewriting the block boundary logic.
+**Phase to address:** Phase 2 (HTML Docs Generation).
 
 ---
 
-### Pitfall 4: Over-Tokenization Destroying Diagnostic Value
+### Pitfall 4: Binary Size Bloat from Embedded HTML/CSS/JS
 
 **What goes wrong:**
-The tool tokenizes too aggressively, replacing error codes, status codes, HTTP methods, log levels, function names, or timestamps that are essential for diagnosis. Claude receives logs where every meaningful identifier is replaced with TOK_xxx, making diagnosis impossible. The tool is "secure" but useless.
+Embedding CSS frameworks, fonts, syntax highlighting JS, and icons inflates the binary by 500KB-2MB+.
 
 **Why it happens:**
-After discovering false negatives (Pitfall 1), developers overcorrect by making detection hyper-aggressive. Short alphanumeric strings get flagged as potential tokens. Numeric values get flagged as potential IDs. Internal function names get tokenized because they "reveal business logic." The result is that the LLM has nothing meaningful to work with.
+Developers start with a minimal template (5KB), then add Tailwind CSS (~300KB), highlight.js (~70KB), web fonts (100-400KB), and a clipboard library. Each seems small but they compound.
 
-**How to avoid:**
-- Define clear tokenization categories with different sensitivity levels: credentials (always tokenize), PII (always tokenize), infrastructure (configurable), business logic (configurable with sensible defaults)
-- Preserve diagnostic-critical fields by default: timestamps, log levels, HTTP status codes, error codes, standard library class names
-- Provide a "verbosity" knob: strict mode (tokenize everything questionable) vs. balanced mode (preserve diagnostic value) vs. minimal mode (credentials and PII only)
-- Let users define "preserve" patterns for their specific error codes and status enumerations
+**Prevention:**
+- **Budget: <50KB total** for the HTML template including inline CSS and JS.
+- No CSS frameworks. Write minimal custom CSS (~2-3KB). A docs page does not need Bootstrap or Tailwind.
+- No external fonts. Use the system font stack (`font-family: system-ui, -apple-system, sans-serif`).
+- No JS syntax highlighting. CSS-only styling for code blocks is sufficient.
+- Copy-to-clipboard: Use native `navigator.clipboard.writeText()` (~15 lines of JS). No clipboard.js library.
+- askama compiles the inline template into Rust code, so the HTML string is part of the binary's `.rodata` section. Measure with `cargo bloat --release`.
 
-**Warning signs:**
-- No configuration for tokenization aggressiveness
-- Test logs come back as mostly tokens with little readable context
-- Claude's diagnosis quality is poor despite good logs going in
-
-**Phase to address:**
-Detection tuning phase (Phase 2, after core engine). Requires iteration: build core detection first, then tune precision/recall with real log samples.
+**Phase to address:** Phase 2 (HTML Docs Generation). Size budget must be set before designing the template.
 
 ---
 
-### Pitfall 5: Token Map Encryption Key Mismanagement
+## Moderate Pitfalls
+
+### Pitfall 5: Clipboard API Failing on file:// URLs
 
 **What goes wrong:**
-The encrypted token store is only as secure as its key management. Common failures: the encryption key is derived from a hardcoded value, stored in plaintext adjacent to the encrypted file, or the same key is used across all installations. An attacker who gets the encrypted token map also trivially gets the key.
+Copy-to-clipboard buttons work when served via localhost/HTTPS but fail silently when the HTML file is opened directly as a `file://` URL -- which is exactly how most users will open locally-generated docs.
 
 **Why it happens:**
-Cross-platform key storage is genuinely hard. macOS has Keychain, Windows has Credential Manager, Linux has Secret Service API (which requires a desktop environment -- absent in Docker/K8s). Developers take shortcuts: derive key from machine ID (predictable), store in a dotfile (plaintext), or use a fixed key compiled into the binary (extractable).
+`navigator.clipboard.writeText()` requires a "secure context" (HTTPS or localhost). `file://` protocol behavior is inconsistent: Chrome allows it, Firefox blocks it, Safari varies.
 
-**How to avoid:**
-- Use OS-native credential stores where available: macOS Keychain, Windows Credential Manager, Linux Secret Service. Libraries like `keyring-rs` (Rust) or `go-keyring` (Go) abstract this
-- For headless environments (Docker, K8s, CI/CD), support explicit key provision via environment variable or mounted secret -- never fall back to a hardcoded key
-- If no secure store is available, derive the key from a user-provided passphrase using a proper KDF (Argon2id), and make the user explicitly acknowledge this is less secure
-- Never store the encryption key adjacent to the encrypted data
-- Document the threat model: what is protected against whom
+**Prevention:**
+Implement a fallback using the legacy `document.execCommand('copy')`:
 
-**Warning signs:**
-- Key derivation does not use a proper KDF
-- The tool "just works" on all platforms without any key setup -- this likely means a hardcoded or trivially derivable key
-- No documentation of what happens in headless environments
-- Tests create encrypted stores without requiring any key input
+```javascript
+async function copyText(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+```
 
-**Phase to address:**
-Encrypted storage phase (Phase 2). Must be designed before building the persistence layer. The key management strategy dictates the storage architecture.
+- Always wrap clipboard calls in try/catch. On failure, show visible feedback.
+- Safari requires clipboard write to happen in direct response to a user gesture (click handler). Do not wrap in setTimeout or async chains that break the gesture.
+- Test the generated HTML by opening it directly as a file (double-click) in Chrome, Firefox, and Edge.
+
+**Phase to address:** Phase 2 (HTML Docs Generation).
 
 ---
 
-### Pitfall 6: LLM Context Window Overflow and Information Loss
+### Pitfall 6: askama Template Compile Errors Are Cryptic
 
 **What goes wrong:**
-Large log files, even after tokenization, exceed Claude's context window. The tool either silently truncates (losing the error that matters, which is often buried in the middle of logs), or fails entirely. Worse, if the tool sends only the beginning and end of logs, the "lost middle" effect in LLM attention means even in-window content may get poor attention.
+askama validates templates at compile time (a feature), but error messages point to the `#[derive(Template)]` line rather than the specific template line with the error. A typo in the Jinja syntax or a missing struct field produces a proc-macro error that's hard to debug.
 
-**Why it happens:**
-Tokenization reduces security risk but does not significantly reduce volume -- tokens are roughly the same length as the original values. A 500MB log file tokenized is still approximately a 500MB log file. Developers build the tokenize-and-send pipeline assuming logs will fit, then discover most real-world diagnostic scenarios involve large volumes.
+**Prevention:**
+- Start with a minimal template and add sections incrementally. Compile after each addition.
+- Keep the inline `source` template under ~150 lines. If it grows larger, move to an external `templates/docs.html` file where editors provide Jinja syntax highlighting and line numbers.
+- Use `cargo check` frequently -- faster than `cargo build` for catching template errors.
+- Common mistakes: `{{ variable }}` vs `{% tag %}` confusion, forgetting `{% endfor %}` or `{% endif %}`, using `Option` fields without `{% if let %}` guards.
 
-**How to avoid:**
-- Implement intelligent log summarization/selection BEFORE sending to Claude: error-adjacent lines, first/last occurrence of patterns, stack traces only, etc.
-- Design a "window packing" strategy: prioritize error lines, their immediate context (N lines before/after), and related entries (same thread/request ID)
-- Show users exactly how much of the log will be sent and what will be excluded
-- Support iterative diagnosis: send a summary first, let Claude ask for specific sections, then send those sections
-- Track the LLM's finish_reason -- if "length", detect and warn rather than presenting truncated analysis
-
-**Warning signs:**
-- No log size awareness in the send-to-LLM pipeline
-- No selection/summarization step between tokenization and LLM submission
-- Users report Claude's diagnosis misses obvious errors that are present in the logs
-
-**Phase to address:**
-Claude integration phase (Phase 3). Must be designed when building the LLM interaction, not bolted on after.
+**Phase to address:** Phase 2 (HTML Docs Generation).
 
 ---
 
-### Pitfall 7: Sensitive Data Leaking Through Token Patterns
+### Pitfall 7: clap Introspection Returning Hidden Arguments
 
 **What goes wrong:**
-Tokens themselves reveal information about the original data. Examples: `TOK_IP_192_168_x` partially reveals the IP. `TOK_EMAIL_1`, `TOK_EMAIL_2` reveals how many distinct emails exist. Format-preserving tokens (same length as original) reveal value length. Deterministic tokens allow rainbow-table attacks if the input space is small (e.g., IP addresses in a known subnet).
+`Command::get_arguments()` returns ALL arguments including hidden ones. clap auto-adds `--help` and `--version` as hidden arguments. The generated HTML docs include these for every subcommand, cluttering the reference.
 
-**Why it happens:**
-Developers create "helpful" token formats for debugging, or use simple hashing that is reversible for small input spaces. The desire for human-readable tokenized logs conflicts with security.
+**Prevention:**
+- Filter arguments: skip any where `arg.is_hide_set()` returns true.
+- Either exclude `--help`/`--version` entirely (users know about these) or include them once in a "Global Options" section rather than repeating per-subcommand.
 
-**How to avoid:**
-- Use opaque, sequential tokens: `TOK_001`, `TOK_002`, etc. -- no category prefix, no format preservation, no length correlation
-- If category prefixes are needed for Claude's understanding (e.g., `[IP_TOKEN_1]` so Claude knows it is an IP), ensure the prefix reveals only the TYPE, never the VALUE
-- For deterministic mapping, use HMAC with a session-specific secret rather than plain hashing -- this prevents rainbow tables
-- Count-based information leakage is generally acceptable (knowing there are 5 distinct IPs is low risk), but document this in the threat model
-
-**Warning signs:**
-- Token format includes partial original values
-- Tokens are generated by hashing without a secret/salt
-- Token length varies based on input length
-
-**Phase to address:**
-Core tokenization engine phase (Phase 1). Token format is a foundational design decision that propagates everywhere.
+**Phase to address:** Phase 2 (HTML Docs Generation).
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 8: ANSI Escape Codes Leaking into Piped/Redirected Output
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Regex-only detection (no entropy/heuristic layer) | Faster v1 ship | Perpetual false negatives, security incidents | MVP only, with explicit "not production-safe" warning |
-| In-memory token map only (no persistence) | Simpler architecture | Inconsistent tokens across sessions, can't re-diagnose related logs | Never -- breaks core value proposition of session persistence |
-| Single-threaded block processing | Simpler concurrency model | Cannot handle GB-scale files in reasonable time | Early phases, but architecture must not preclude parallelism |
-| Hardcoded log format parsers | Quick support for common formats | Every new format requires code changes | MVP, but design a pluggable parser interface from the start |
-| Sending entire tokenized log to LLM | Simpler pipeline | Context overflow, poor diagnosis, high API costs | Never for production -- always need selection/summarization |
+**What goes wrong:**
+Colored help works in terminals but when piped (`logtok --help | grep tokenize`) or redirected (`logtok --help > help.txt`), ANSI codes appear as garbage.
 
-## Integration Gotchas
+**Prevention:**
+- clap's `anstream` already strips ANSI when stdout is not a TTY. This works out of the box IF you do not bypass anstream.
+- If you add custom colored output outside clap's help system, always write through `anstream::stdout()`, never raw `println!` with embedded ANSI.
+- Test: `logtok --help > /tmp/help.txt && cat /tmp/help.txt` should contain no escape sequences.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Claude API | Sending tokenized logs as a single massive prompt with no structure | Structure the prompt: system instructions explaining token format, then log content organized by severity/time, then specific question |
-| Claude API | Not handling rate limits or token counting before submission | Pre-count tokens client-side, split into multiple requests if needed, implement exponential backoff |
-| OS Credential Store | Assuming Secret Service API is available on all Linux systems | Detect availability at runtime, fall back gracefully to passphrase-based encryption with clear user messaging |
-| Clipboard | Assuming clipboard is available in headless/SSH/container environments | Detect environment, fall back to file output, warn user clearly |
+**Phase to address:** Phase 1 (Colored CLI Help).
 
-## Performance Traps
+---
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Loading entire token map into memory | Memory spikes on long-running sessions with many unique values | Use a memory-mapped or LRU-cached token store; flush cold entries to disk | At ~1M unique tokens (common in large log sets with many unique IDs) |
-| Compiling regexes per-line instead of per-session | CPU-bound processing, 10-100x slower than expected | Pre-compile all regex patterns once at startup, reuse compiled objects | Immediately noticeable on files > 1MB |
-| Synchronous encryption of token map on every write | I/O bottleneck, processing stalls on every new token | Batch writes, encrypt periodically or on session close, use write-ahead log for crash safety | At > 10K tokens per processing run |
-| Reading entire file into memory before processing | OOM on large files | Stream with buffered reader, process block by block | At file sizes exceeding available RAM (commonly 1-4GB on containers) |
-| Single-pass regex matching (one pattern at a time) | O(patterns * lines) complexity, slow with many detection rules | Use a combined regex (alternation) or a multi-pattern engine like Aho-Corasick | At > 50 detection patterns or > 100K log lines |
+### Pitfall 9: wrap_help Feature Not Enabled
 
-## Security Mistakes
+**What goes wrong:**
+Long help descriptions wrap at the terminal's character boundary, breaking words mid-syllable and making help text hard to read on narrow terminals (80 columns, laptop screens).
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Token map file left world-readable | Any local process can read the complete sensitive-to-token mapping | Set file permissions to 0600 (owner-only) on creation; verify on every access |
-| Sensitive data in error messages or debug logs of the tool itself | The tokenizer's own logs contain the secrets it was meant to hide | Never log original values, even at debug level; log only token IDs and metadata |
-| Temporary files containing partially-tokenized output | Crash or interruption leaves sensitive data on disk | Use in-memory buffers for intermediate state; if temp files are needed, encrypt them and clean up in a finally/defer block |
-| Token map persisted without integrity check | Attacker modifies token map to cause incorrect de-tokenization (mapping secrets to wrong values) | Include HMAC over the token map; verify integrity before loading |
-| Sending tokenized logs over HTTP (not HTTPS) to Claude API | Tokenized logs could be intercepted, and combined with a stolen token map, reveal original values | Enforce HTTPS; reject non-TLS API endpoints; pin certificates if paranoid |
+**Prevention:**
+- Enable clap's `wrap_help` feature: `clap = { version = "4.6.0", features = ["derive", "wrap_help"] }`. This makes clap detect terminal width and wrap at word boundaries.
+- This feature is NOT enabled by default. It adds a dependency on `terminal_size` crate (minimal size impact).
+- Test with narrow terminal widths (80 columns, 60 columns).
 
-## UX Pitfalls
+**Phase to address:** Phase 1 (Colored CLI Help).
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| No visibility into what was tokenized | User cannot trust the tool, must manually verify every output | Provide a summary: "Tokenized 47 IPs, 12 emails, 3 API keys, 156 paths" with option to show details |
-| Silent failure on unsupported log formats | User thinks logs were tokenized but detection found nothing | Warn if zero or suspiciously few detections; suggest the log format may need custom patterns |
-| De-tokenized output format differs from original log format | User struggles to map Claude's diagnosis back to their actual logs | Preserve original formatting and line numbers in de-tokenized output |
-| No progress indicator for large files | User thinks tool is frozen during GB-scale processing | Show progress: bytes processed, entries tokenized, estimated time remaining |
-| Requiring complex setup before first use | User abandons tool before seeing value | Zero-config first run with sensible defaults; advanced configuration optional |
+---
 
-## "Looks Done But Isn't" Checklist
+## Minor Pitfalls
 
-- [ ] **Detection coverage:** Often missing base64-encoded secrets, URL-encoded values, secrets in query parameters, multi-line certificates/keys -- verify with a corpus of real-world log formats
-- [ ] **Block boundary handling:** Often missing proper handling of entries split across blocks -- verify by processing a file where a stack trace falls exactly on a block boundary
-- [ ] **Token consistency:** Often missing cross-block consistency -- verify by searching for the same IP/hostname across multiple blocks and confirming identical tokens
-- [ ] **De-tokenization completeness:** Often missing tokens that Claude introduces in its analysis text (e.g., "TOK_045 is communicating with TOK_046") -- verify Claude's response is fully de-tokenized, not just the log portions
-- [ ] **Encrypted store crash safety:** Often missing recovery from interrupted writes -- verify by killing the process mid-encryption and confirming the store is still loadable
-- [ ] **Cross-platform binary:** Often missing platform-specific path handling (backslashes vs forward slashes, %APPDATA% vs ~/.config) -- verify on actual Windows, macOS, and Linux, not just CI
-- [ ] **Headless environment support:** Often missing fallbacks when no GUI credential store exists -- verify in a Docker container with no desktop environment
+### Pitfall 10: HTML Not Accessible
 
-## Recovery Strategies
+**What goes wrong:**
+Generated HTML docs fail accessibility: no semantic headings, poor contrast, copy buttons without aria labels, code blocks not keyboard-navigable.
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Incomplete detection (secrets leaked to LLM) | HIGH | Cannot un-send data. Rotate all potentially exposed credentials. Improve detection patterns. Re-process and re-diagnose. |
-| Broken referential integrity | MEDIUM | Re-process entire log set with corrected token map. Previous Claude diagnoses are invalid. |
-| Multi-line splitting | MEDIUM | Fix boundary detection, re-process. Previous diagnoses may be partially valid. |
-| Over-tokenization | LOW | Adjust sensitivity settings, re-process and re-submit. No security impact. |
-| Key mismanagement | HIGH | If key was exposed, all token maps encrypted with it are compromised. Rotate key, re-encrypt all stores, rotate any credentials that were in the maps. |
-| Context overflow | LOW | Implement selection/summarization, re-submit. Previous truncated diagnosis is unreliable but no data loss. |
-| Token pattern leakage | MEDIUM | Change token format, regenerate all mappings. Previous tokenized outputs in LLM history may have leaked partial info. |
+**Prevention:**
+- Use semantic HTML: `<h1>` for tool name, `<h2>` for sections, `<h3>` for subcommands.
+- Copy buttons: add `aria-label="Copy command to clipboard"`, make buttons keyboard-focusable.
+- Color contrast: minimum 4.5:1 ratio for body text (WCAG AA).
 
-## Pitfall-to-Phase Mapping
+**Phase to address:** Phase 2 (HTML Docs Generation).
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Incomplete detection | Phase 1: Core detection engine | Run against a curated corpus of 10+ real log formats; measure recall rate; must catch >95% of known secret patterns |
-| Broken referential integrity | Phase 1: Token map architecture | Process a 1GB log file in blocks; verify every repeated value maps to the same token |
-| Multi-line splitting | Phase 1: Log parser / block processor | Test with Java, Python, Node.js stack traces; verify no entry is split across blocks |
-| Over-tokenization | Phase 2: Detection tuning | Submit tokenized logs to Claude; verify diagnosis quality matches a human reading the same logs |
-| Key mismanagement | Phase 2: Encrypted storage | Security review of key derivation and storage; test on all target platforms including headless |
-| Context overflow | Phase 3: Claude integration | Process a 100MB log file end-to-end; verify Claude receives a well-selected subset and produces useful diagnosis |
-| Token pattern leakage | Phase 1: Token format design | Review token format against information leakage checklist; verify tokens reveal only type, never value |
+### Pitfall 11: Short Help vs Long Help Rendering Differences
+
+**What goes wrong:**
+`-h` shows `about`, `--help` shows `long_about` + `after_help`. Users see styled content sometimes and plain content other times.
+
+**Prevention:**
+- Test all variants: `logtok -h`, `logtok --help`, `logtok help`, `logtok help tokenize`.
+- Keep the short `about` clean. Put styled content only in `long_about` or `after_help`.
+
+**Phase to address:** Phase 1 (Colored CLI Help).
+
+### Pitfall 12: askama HTML Auto-Escaping Surprises
+
+**What goes wrong:**
+askama in HTML mode auto-escapes all `{{ variable }}` output. If clap help text contains intentional HTML-like content (e.g., `<FILE>` placeholder), it renders as `&lt;FILE&gt;` in the docs page.
+
+**Prevention:**
+- This is actually correct behavior -- you WANT escaping for safety. Design the template so `<FILE>` displays properly by using it in a `<code>` context where the escaped text is still readable.
+- Do NOT use the `|safe` filter on any content from clap metadata.
+- If you need literal HTML in static template sections, write it directly in the template markup, not through variables.
+
+**Phase to address:** Phase 2 (HTML Docs Generation).
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation |
+|-------------|---------------|------------|
+| Colored CLI Help (Phase 1) | Windows cmd.exe shows raw escape codes | Test on actual cmd.exe, rely on clap's anstream |
+| Colored CLI Help (Phase 1) | Custom styles unreadable on light terminals | Stick to basic 8 ANSI colors, test both themes |
+| Colored CLI Help (Phase 1) | Piped output contains escape codes | Rely on clap's anstream, do not bypass with raw println |
+| Colored CLI Help (Phase 1) | Word wrapping ugly on narrow terminals | Enable `wrap_help` clap feature |
+| HTML Docs (Phase 2) | Docs drift from actual CLI | Generate from clap Command tree, CI test for sync |
+| HTML Docs (Phase 2) | Binary bloated by embedded assets | 50KB budget, no frameworks, system fonts, minimal JS |
+| HTML Docs (Phase 2) | Copy buttons fail on file:// URLs | Fallback to execCommand, try/catch with visible error |
+| HTML Docs (Phase 2) | askama errors hard to debug | Build template incrementally, compile-check often |
+| HTML Docs (Phase 2) | Hidden args clutter generated docs | Filter `is_hide_set()` args during extraction |
 
 ## Sources
 
-- [Skyflow: How to Keep Sensitive Data Out of Your Logs](https://www.skyflow.com/post/how-to-keep-sensitive-data-out-of-your-logs-nine-best-practices)
-- [Protecto: False Positives and Negatives in AI Privacy Tools](https://www.protecto.ai/blog/false-positives-and-negatives-in-ai-privacy-tools/)
-- [Private AI: The Hidden PII Detection Crisis](https://www.private-ai.com/en/blog/hidden-pii-detection)
-- [Better Stack: Logging Practices for Safeguarding Sensitive Data](https://betterstack.com/community/guides/logging/sensitive-data/)
-- [Datadog: Observability Pipelines Sensitive Data Redaction](https://www.datadoghq.com/blog/observability-pipelines-sensitive-data-redaction/)
-- [Sematext: Handling Stack Traces with Logstash](https://sematext.com/blog/handling-stack-traces-with-logstash/)
-- [arXiv: Protecting Privacy in Software Logs](https://arxiv.org/html/2409.11313v2)
-- [anonym.legal: GDPR Log Anonymization](https://anonym.legal/blog/gdpr-compliant-json-log-anonymization-devops-2025)
-- [Atlan: LLM Context Window Limitations in 2026](https://atlan.com/know/llm-context-window-limitations/)
-- [keyring-rs: Cross-platform credential storage for Rust](https://docs.rs/keyring)
-- [go-keyring: Cross-platform keyring for Go](https://github.com/zalando/go-keyring)
-- [OWASP Key Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Key_Management_Cheat_Sheet.html)
-
----
-*Pitfalls research for: Log tokenization and privacy-preserving log diagnosis*
-*Researched: 2026-04-13*
+- [clap ColorChoice docs](https://docs.rs/clap/latest/clap/enum.ColorChoice.html)
+- [clap Styles docs](https://docs.rs/clap/latest/clap/builder/struct.Styles.html)
+- [clap features list](https://docs.rs/clap/latest/clap/_features/index.html)
+- [Rain's Rust CLI Recommendations: Managing Colors](https://rust-cli-recommendations.sunshowers.io/managing-colors-in-rust.html)
+- [NO_COLOR standard](https://no-color.org/)
+- [anstream: simplifying terminal styling](https://epage.github.io/blog/2023/03/anstream-simplifying-terminal-styling/)
+- [askama template syntax](https://askama.rs/en/latest/template_syntax.html)
+- [navigator.clipboard secure context requirement (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API)
+- [Microsoft: Console Virtual Terminal Sequences](https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences)
+- [colorchoice-clap crate](https://docs.rs/colorchoice-clap)
