@@ -1,131 +1,174 @@
 ---
 phase: 01-core-tokenization-engine
-reviewed: 2026-04-14T00:00:00Z
+reviewed: 2026-04-19T12:00:00Z
 depth: standard
-files_reviewed: 15
+files_reviewed: 23
 files_reviewed_list:
-  - Cargo.toml
   - src/cli.rs
+  - src/clipboard.rs
   - src/compactor.rs
+  - src/config.rs
   - src/detector.rs
+  - src/detokenizer.rs
   - src/error.rs
   - src/json_processor.rs
   - src/lib.rs
   - src/main.rs
   - src/processor.rs
+  - src/store.rs
   - src/tokenizer.rs
   - tests/cli_tests.rs
   - tests/compactor_tests.rs
+  - tests/config_tests.rs
   - tests/integration_tests.rs
   - tests/json_tests.rs
+  - tests/store_tests.rs
   - tests/unit_tests.rs
+  - Cargo.toml
+  - .github/workflows/ci.yml
+  - .github/workflows/release.yml
 findings:
-  critical: 0
-  warning: 3
+  critical: 1
+  warning: 5
   info: 3
-  total: 6
+  total: 9
 status: issues_found
 ---
 
-# Phase 1: Code Review Report
+# Phase 01: Code Review Report
 
-**Reviewed:** 2026-04-14
+**Reviewed:** 2026-04-19
 **Depth:** standard
-**Files Reviewed:** 15
+**Files Reviewed:** 23
 **Status:** issues_found
 
 ## Summary
 
-The core tokenization engine is well-structured with clean module boundaries, deterministic token assignment, and solid test coverage across unit, integration, and CLI levels. The code follows Rust idioms correctly, uses appropriate error handling with `anyhow`/`thiserror`, and the processing pipeline (detect -> tokenize -> compact -> output) is sound.
+The codebase is well-structured with clean module separation, solid test coverage (unit, integration, CLI, and store-level), and correct use of authenticated encryption (AES-256-GCM + Argon2id) for the token store. Detection patterns are carefully ordered by priority with stable-sort overlap resolution. The processing pipeline (detect, tokenize, compact, output) is sound and the block-based architecture is ready for large file handling.
 
-No critical security issues were found. The key concerns are: (1) the IP address regex over-matches invalid addresses, (2) cross-platform byte counting is inaccurate on Windows due to CRLF handling, and (3) the overlap resolution for detection matches at identical start positions may not respect intended pattern priority.
+The main concerns are: (1) a panic-inducing byte-boundary string slice in `truncate_example`, (2) an `unwrap()` on `current_dir()` in the detokenize error path, (3) potential unsigned integer underflow in TTL expiry logic, (4) `ensure_gitignore` ignoring its store parameter, and (5) unsafe environment variable mutation in tests.
+
+## Critical Issues
+
+### CR-01: Panic on multi-byte UTF-8 in `truncate_example`
+
+**File:** `src/processor.rs:273`
+**Issue:** `&s[..max_len]` slices on byte offset, not character boundary. If a multi-byte UTF-8 character (e.g., accented name in log data, CJK characters) straddles the `max_len` boundary, this panics at runtime with `byte index N is not a char boundary`. This is reachable through the `--dry-run` flag with any log containing non-ASCII sensitive values.
+**Fix:**
+```rust
+fn truncate_example(s: &str, max_len: usize) -> String {
+    if s.len() <= max_len {
+        s.to_string()
+    } else {
+        let truncated: String = s.chars().take(max_len).collect();
+        format!("{}...", truncated)
+    }
+}
+```
 
 ## Warnings
 
-### WR-01: IP regex matches invalid addresses (false positives)
+### WR-01: `unwrap()` on `current_dir()` panics if CWD is unavailable
 
-**File:** `src/detector.rs:34`
-**Issue:** The IP pattern `\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b` will match syntactically invalid IP addresses like `999.999.999.999` or version strings like `1.22.333.4444`. In log files, version numbers (e.g., software versions) commonly appear in dot-separated numeric format and would be incorrectly tokenized as IP addresses, corrupting non-sensitive data.
-**Fix:** Either validate octets are 0-255 in the regex, or add a post-match validation step:
+**File:** `src/main.rs:112`
+**Issue:** `store_path.unwrap_or_else(|| std::env::current_dir().unwrap().join(".loktok"))` will panic if the working directory has been deleted or is otherwise inaccessible. This is the detokenize code path where a user might reasonably be in a cleaned-up directory or running from a removed temp directory.
+**Fix:**
 ```rust
-("IP", r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"),
+let store_dir = match store_path {
+    Some(p) => p,
+    None => std::env::current_dir()
+        .context("Cannot determine current directory for token store")?
+        .join(".loktok"),
+};
 ```
 
-### WR-02: Block byte tracking inaccurate on Windows (CRLF)
+### WR-02: Unsigned integer underflow in `purge_expired`
 
-**File:** `src/processor.rs:69`
-**Issue:** `line.len() + 1` assumes Unix-style `\n` line endings. On Windows, files commonly use `\r\n` (2 bytes). `BufReader::lines()` strips both `\r\n` and `\n`, so the actual bytes consumed per line may be `line.len() + 2`. This means `block_bytes` underestimates bytes read from CRLF files, causing: (1) blocks to be larger than the configured `block_size`, and (2) the progress bar to not reach 100% at completion (the total is `file_size` from metadata, but accumulated `block_bytes` will be less).
-**Fix:** Read the raw byte length before stripping, or account for platform line endings:
+**File:** `src/tokenizer.rs:130`
+**Issue:** `now - entry.created_at` performs unsigned subtraction on `u64`. If a token entry has a `created_at` timestamp in the future (e.g., clock skew between machines, manually edited store, or system clock adjusted backward), this wraps around to a very large number in release builds, causing unexpected mass-purge of all tokens. While clock-in-future is uncommon, it is a realistic scenario for a tool that persists encrypted state across sessions.
+**Fix:**
 ```rust
-// After the progress bar finishes the final block, call pb.set_position(file_size)
-// to ensure it reaches 100%, regardless of line-ending byte counting.
-if let Some(ref pb) = progress {
-    pb.set_position(file_size);
+.filter(|(_, entry)| {
+    now.checked_sub(entry.created_at)
+        .map_or(false, |age| age > ttl_seconds)
+})
+```
+
+### WR-03: `ensure_gitignore` ignores its `_store` parameter, hardcodes CWD
+
+**File:** `src/processor.rs:186`
+**Issue:** The function signature is `fn ensure_gitignore(_input_path: &Path, _store: &Store)` but both parameters are unused (prefixed with `_`). The function hardcodes `std::env::current_dir()?.join(".loktok")`. If the store directory is in a non-CWD location (future `--store` flag on tokenize, or any invocation where CWD differs from the store location), the `.gitignore` is written to the wrong directory.
+**Fix:** Either expose the store directory path from `Store` and use it, or accept `store_dir: &Path` as a parameter:
+```rust
+fn ensure_gitignore(store_dir: &Path) -> Result<()> {
+    let gitignore_path = store_dir.join(".gitignore");
+    if !gitignore_path.exists() {
+        fs::create_dir_all(store_dir)?;
+        fs::write(&gitignore_path, "*\n")?;
+    }
+    Ok(())
 }
 ```
-For block size accuracy, consider using `BufRead::read_line()` instead of `lines()`, which preserves the line terminator and gives accurate byte counts.
 
-### WR-03: Detection overlap resolution is fragile at identical start positions
+### WR-04: Regex recompiled on every `detokenize` call
 
-**File:** `src/detector.rs:88-99`
-**Issue:** The comment on line 88 says "ties broken by pattern order (earlier = higher priority)" but this relies on `sort_by_key` being stable (it is in Rust) AND on matches being pushed in pattern-definition order. For KEY and PASS patterns, matches are pushed based on capture group 1 position (line 72: `captured.start()`), not the full regex match position. If a KEY's captured value starts at the same byte offset as another pattern's match, the priority depends on insertion order during iteration. For example, if a line contains `token=admin@example.com`, the KEY pattern would match with capture group starting at `admin@...`, and the EMAIL pattern would also match at the same position. The KEY match would be inserted first (earlier in pattern list), so it wins -- but the KEY's full match spans `token=admin@example.com` while only the capture `admin@example.com` is recorded. The EMAIL match at the same start is correctly suppressed, but the `last_end` is set to the EMAIL-length portion, potentially allowing later overlapping matches to slip through.
-**Fix:** For KEY/PASS, use the full match span for overlap resolution while still only tokenizing the captured group:
+**File:** `src/detokenizer.rs:35`
+**Issue:** `Regex::new(r"\[([A-Z]+_\d{3,})\]").unwrap()` compiles the regex on every invocation of `detokenize()`. While the `unwrap()` is safe here (the pattern is a static literal), recompilation is wasteful. More importantly, if this function is ever called in a loop (batch mode, streaming), the cost compounds. Use a static `LazyLock`.
+**Fix:**
 ```rust
-// In the KEY/PASS branch, track full match bounds for overlap resolution
-if let Some(captured) = caps.get(1) {
-    let full_match = caps.get(0).unwrap();
-    refined.push(DetectionMatch {
-        category: category.clone(),
-        value: captured.as_str().to_string(),
-        start: captured.start(),
-        end: full_match.end(), // Use full match end for overlap exclusion
-    });
+use std::sync::LazyLock;
+
+static TOKEN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\[([A-Z]+_\d{3,})\]").unwrap()
+});
+
+pub fn detokenize(text: &str, token_to_value: &HashMap<String, String>) -> DetokenizeResult {
+    let re = &*TOKEN_RE;
+    // ... rest unchanged
 }
 ```
+
+### WR-05: Unsafe environment variable mutation in store tests
+
+**File:** `tests/store_tests.rs:33,52,69,91,109,132,163,173`
+**Issue:** Multiple test functions use `unsafe { std::env::set_var("LOGTOK_KEY", ...) }` to mutate the process environment. The `ENV_LOCK` mutex serializes these specific tests, but does not prevent other threads (Rust test harness runs tests in parallel by default) from reading `LOGTOK_KEY` concurrently. Rust 2024 edition correctly marks `set_var` as `unsafe` because this is inherently racy in multi-threaded programs.
+**Fix:** Refactor `Store::new` to accept the passphrase as a parameter (or via a builder/config struct) instead of reading from the environment directly. Keep the env var as the default source in `main.rs` for backward compatibility:
+```rust
+impl Store {
+    pub fn with_passphrase(store_dir: &Path, passphrase: String) -> Result<Self, TokeniserError> {
+        // ... current logic without env::var
+    }
+
+    pub fn new(store_dir: &Path) -> Result<Self, TokeniserError> {
+        let passphrase = std::env::var("LOGTOK_KEY").map_err(|_| ...)?;
+        Self::with_passphrase(store_dir, passphrase)
+    }
+}
+```
+Tests then call `Store::with_passphrase()` directly, eliminating all `unsafe` blocks.
 
 ## Info
 
-### IN-01: Redundant character in KEY regex character class
+### IN-01: Unused dependencies: `tracing` and `tracing-subscriber`
 
-**File:** `src/detector.rs:28`
-**Issue:** The regex `['""]?` contains a duplicated double-quote character in the character class. The bytes confirm two identical `0x22` characters. This is functionally harmless (regex engines deduplicate) but suggests a possible intent to match smart/curly quotes that was not implemented.
-**Fix:** Remove the duplicate: `['"]?`
+**File:** `Cargo.toml:20-21`
+**Issue:** `tracing = "0.1.44"` and `tracing-subscriber = "0.3"` are listed as dependencies but are never imported or used anywhere in the source code. They add unnecessary compile time and binary size.
+**Fix:** Remove both from `[dependencies]` until structured logging is implemented.
 
-### IN-02: `#[allow(dead_code)]` on entire error enum
+### IN-02: `tempfile` listed in both `[dependencies]` and `[dev-dependencies]`
 
-**File:** `src/error.rs:5-6`
-**Issue:** The `#[allow(dead_code)]` attribute on `TokeniserError` suppresses warnings for all variants. Currently, `FileNotFound`, `FileReadError`, and `JsonParseError` appear unused. If these are planned for future use, consider adding a TODO comment. If not, remove the unused variants to keep the API surface clean.
-**Fix:** Either remove the attribute and unused variants, or add `#[allow(dead_code)]` only to specific unused variants with a comment explaining they are planned:
-```rust
-#[derive(Error, Debug)]
-pub enum TokeniserError {
-    // Used
-    #[error("Invalid block size: {size} (must be between 1024 and 104857600)")]
-    InvalidBlockSize { size: usize },
+**File:** `Cargo.toml:17,24`
+**Issue:** `tempfile = "3"` appears in both `[dependencies]` and `[dev-dependencies]`. It is used in `main.rs` for clipboard temp file handling (production code) so the `[dependencies]` entry is correct, but the `[dev-dependencies]` entry is redundant since dev-dependencies automatically include regular dependencies.
+**Fix:** Remove `tempfile = "3"` from `[dev-dependencies]`.
 
-    #[error("Write error: {0}")]
-    WriteError(#[from] std::io::Error),
+### IN-03: PATH regex only matches Unix-style paths
 
-    // Planned for structured error handling in future phases
-    #[allow(dead_code)]
-    #[error("File not found: {path}")]
-    FileNotFound { path: PathBuf },
-    // ...
-}
-```
-
-### IN-03: PATH pattern misses short sensitive paths
-
-**File:** `src/detector.rs:39`
-**Issue:** The PATH regex `(?:/[a-zA-Z0-9._-]+){3,}` requires 3+ path segments, so paths like `/etc/passwd`, `/etc/shadow`, or `/tmp/secrets` (2 segments) are not detected. These are commonly sensitive file paths in log output.
-**Fix:** Consider reducing the minimum to 2 segments, or adding a separate pattern for known sensitive short paths:
-```rust
-("PATH", r"(?:/[a-zA-Z0-9._-]+){2,}"),
-```
-Note: Lowering to 2 may increase false positives on strings like `/api/users` in URLs that are already captured by the URL pattern. The overlap resolution should handle this, but test coverage for this edge case would be prudent.
+**File:** `src/detector.rs:148`
+**Issue:** The PATH pattern `(?:/[a-zA-Z0-9._-]+){3,}` only matches forward-slash Unix paths. On Windows, paths like `C:\Users\app\logs\file.log` will not be detected. This may be intentional (log files typically originate from Linux servers), but is worth noting given the project's cross-platform binary distribution goal.
+**Fix:** If Windows path detection is desired in a future iteration, add an alternative pattern or document Unix-only scope explicitly.
 
 ---
 
-_Reviewed: 2026-04-14_
+_Reviewed: 2026-04-19_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
