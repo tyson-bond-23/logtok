@@ -5,6 +5,11 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use regex::Regex;
+use std::sync::LazyLock;
+
+static TOKEN_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\[([A-Z]+_\d{3,})\]").unwrap()
+});
 
 /// Read input from file or stdin (D-06).
 /// If no file given and stdin is a terminal, print usage hint and bail.
@@ -32,7 +37,7 @@ pub fn read_input(file: Option<&Path>) -> Result<String> {
 /// Replace all [CATEGORY_NNN] tokens in text with real values from the token map (D-09).
 /// Tokens not found in the map are left as-is (graceful degradation).
 pub fn detokenize(text: &str, token_to_value: &HashMap<String, String>) -> DetokenizeResult {
-    let re = Regex::new(r"\[([A-Z]+_\d{3,})\]").unwrap();
+    let re = &*TOKEN_RE;
     let mut replaced_count = 0u32;
     let mut unresolved_count = 0u32;
 
