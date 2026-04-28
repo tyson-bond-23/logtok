@@ -51,7 +51,9 @@ fn main() -> Result<()> {
             }
 
             let detection_config = cfg.to_detection_config();
-            let store_dir = std::env::current_dir()?.join(".loktok");
+            let store_dir = std::env::current_dir()
+                .context("Cannot determine current directory for token store")?
+                .join(".loktok");
             let store_result = store::Store::new(&store_dir);
 
             // If clipboard requested, capture output to string first
@@ -108,8 +110,12 @@ fn main() -> Result<()> {
             store: store_path,
         } => {
             // Determine store directory
-            let store_dir = store_path
-                .unwrap_or_else(|| std::env::current_dir().unwrap().join(".loktok"));
+            let store_dir = match store_path {
+                Some(p) => p,
+                None => std::env::current_dir()
+                    .context("Cannot determine current directory for token store")?
+                    .join(".loktok"),
+            };
 
             // Load store -- LOGTOK_KEY required for detokenize
             let store = store::Store::new(&store_dir)
@@ -143,7 +149,9 @@ fn main() -> Result<()> {
         }
 
         Commands::ResetStore => {
-            let store_dir = std::env::current_dir()?.join(".loktok");
+            let store_dir = std::env::current_dir()
+                .context("Cannot determine current directory for token store")?
+                .join(".loktok");
             let store = store::Store::new(&store_dir)?;
             store.reset()?;
             eprintln!("logtok: token store reset");
