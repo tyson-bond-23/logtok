@@ -54,11 +54,11 @@ Plans:
   3. All code examples have copy-to-clipboard buttons that work in Chrome, Firefox, Safari, and Edge (including file:// URLs)
   4. Adding or changing a CLI subcommand in code automatically updates the generated HTML without manual edits (docs derived from clap Command tree)
   5. The HTML page has a clean, professional design appropriate for developer and DevOps audiences
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: TBD
+- [ ] 05-01-PLAN.md — Create Askama HTML template with dark theme, sidebar, content sections, and copy-to-clipboard JS
+- [ ] 05-02-PLAN.md — Build docs.rs module with clap introspection, CLI integration, and integration tests
 
 ### Phase 6: Local UI Interface
 **Goal**: Users can access and use logtok through a polished, intuitive local UI interface — UI/UX perfect for easy access
@@ -93,6 +93,6 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 | 2. Detection & Token Store | v1.0 | 3/3 | Complete | 2026-04-15 |
 | 3. Diagnosis & Delivery | v1.0 | 3/3 | Complete | 2026-04-16 |
 | 4. Colored CLI Help | v2.0 | 1/1 | Complete | 2026-04-29 |
-| 5. HTML Documentation | v2.0 | 0/? | Not started | - |
+| 5. HTML Documentation | v2.0 | 0/2 | Not started | - |
 | 6. Local UI Interface | v2.0 | 0/? | Not started | - |
 | 7. Tokenization Report | v2.0 | 0/? | Not started | - |
