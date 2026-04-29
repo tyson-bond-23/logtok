@@ -9,9 +9,9 @@ Requirements for developer experience milestone. Each maps to roadmap phases.
 
 ### CLI Help Styling
 
-- [ ] **HELP-01**: User sees colored section headers, bold flag names, and styled usage line in --help output
-- [ ] **HELP-02**: CLI respects NO_COLOR and CLICOLOR environment variables (colors disabled when set)
-- [ ] **HELP-03**: Help output renders correctly on Windows cmd.exe, PowerShell, and Unix terminals
+- [x] **HELP-01**: User sees colored section headers, bold flag names, and styled usage line in --help output
+- [x] **HELP-02**: CLI respects NO_COLOR and CLICOLOR environment variables (colors disabled when set)
+- [x] **HELP-03**: Help output renders correctly on Windows cmd.exe, PowerShell, and Unix terminals
 
 ### HTML Documentation
 
@@ -58,9 +58,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HELP-01 | Phase 4 | Pending |
-| HELP-02 | Phase 4 | Pending |
-| HELP-03 | Phase 4 | Pending |
+| HELP-01 | Phase 4 | Complete |
+| HELP-02 | Phase 4 | Complete |
+| HELP-03 | Phase 4 | Complete |
 | DOCS-01 | Phase 5 | Complete |
 | DOCS-02 | Phase 5 | Complete |
 | DOCS-03 | Phase 5 | Complete |
@@ -76,4 +76,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-04-28*
-*Last updated: 2026-04-28 after roadmap creation*
+*Last updated: 2026-04-29 after Phase 05 completion*
