@@ -4,6 +4,7 @@ pub mod compactor;
 pub mod config;
 pub mod detokenizer;
 pub mod detector;
+pub mod docs;
 pub mod error;
 pub mod json_processor;
 pub mod processor;

@@ -525,7 +525,7 @@
       <section id="cmd-{{ cmd.name }}">
         <h3><code>logtok {{ cmd.name }}</code></h3>
         <p>{{ cmd.about }}</p>
-        {% if let Some(ref long) = cmd.long_about %}
+        {% if let Some(long) = cmd.long_about %}
         <p>{{ long }}</p>
         {% endif %}
 
@@ -542,18 +542,18 @@
             {% for arg in cmd.args %}
             <tr>
               <td>
-                <code>{% if let Some(s) = arg.short %}-{{ s }}{% if arg.long.is_some() %}, {% endif %}{% endif %}{% if let Some(ref l) = arg.long %}--{{ l }}{% endif %}</code>
+                <code>{% if let Some(s) = arg.short %}-{{ s }}{% if arg.long.is_some() %}, {% endif %}{% endif %}{% if let Some(l) = arg.long %}--{{ l }}{% endif %}</code>
                 {% if arg.required %}<span class="badge-required">required</span>{% endif %}
               </td>
               <td>{{ arg.help }}</td>
-              <td>{% if let Some(ref dv) = arg.default_value %}<code>{{ dv }}</code>{% else %}&mdash;{% endif %}</td>
+              <td>{% if let Some(dv) = arg.default_value %}<code>{{ dv }}</code>{% else %}&mdash;{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>
         </table>
         {% endif %}
 
-        {% if let Some(ref help) = cmd.after_long_help %}
+        {% if let Some(help) = cmd.after_long_help %}
         <h4 style="color: #e0e0e0; margin-top: 1rem; margin-bottom: 0.5rem;">Examples</h4>
         <div class="code-block">
           <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">&#128203;</button>
@@ -581,10 +581,10 @@
             {% for garg in global_args %}
             <tr>
               <td>
-                <code>{% if let Some(s) = garg.short %}-{{ s }}{% if garg.long.is_some() %}, {% endif %}{% endif %}{% if let Some(ref l) = garg.long %}--{{ l }}{% endif %}</code>
+                <code>{% if let Some(s) = garg.short %}-{{ s }}{% if garg.long.is_some() %}, {% endif %}{% endif %}{% if let Some(l) = garg.long %}--{{ l }}{% endif %}</code>
               </td>
               <td>{{ garg.help }}</td>
-              <td>{% if let Some(ref dv) = garg.default_value %}<code>{{ dv }}</code>{% else %}&mdash;{% endif %}</td>
+              <td>{% if let Some(dv) = garg.default_value %}<code>{{ dv }}</code>{% else %}&mdash;{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>
