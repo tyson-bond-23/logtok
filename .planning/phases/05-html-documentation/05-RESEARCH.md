@@ -348,17 +348,17 @@ let html = tmpl.render()?; // Returns Result<String, askama::Error>
 | A1 | Global args propagate to subcommand `get_arguments()` after `build()` | Pitfall 4 | Would need different filtering logic -- easy to verify during implementation |
 | A2 | The `docs` subcommand would appear in its own `get_subcommands()` output | Pitfall 5 | Minor -- just remove the filter if it doesn't appear |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Output file path default**
    - What we know: `logtok docs` needs to write an HTML file somewhere
    - What's unclear: Should it default to `./logtok-docs.html` in CWD, or require `-o` flag?
-   - Recommendation: Default to `logtok-docs.html` in CWD with optional `-o` override -- matches `tokenize` pattern
+   - RESOLVED: Default to `logtok-docs.html` in CWD with optional `-o` override -- matches `tokenize` pattern
 
 2. **Token categories table data source**
    - What we know: D-04 requires a token categories table with all 19 categories
    - What's unclear: Whether to hardcode the 19 categories in a const or derive from detector module
-   - Recommendation: Define as a const array in `docs.rs` -- the categories are stable and documented in CLAUDE.md. Deriving from detector patterns would be fragile and unnecessary.
+   - RESOLVED: Define as a const array in `docs.rs` -- the categories are stable and documented in CLAUDE.md. Deriving from detector patterns would be fragile and unnecessary.
 
 ## Environment Availability
 
