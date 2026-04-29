@@ -3,7 +3,7 @@
 ## Milestones
 
 - **v1.0 MVP** — Phases 1-3 (shipped 2026-04-28)
-- **v2.0 Developer Experience** — Phases 4-5 (in progress)
+- **v2.0 Developer Experience** — Phases 4-7 (in progress)
 
 ## Phases
 
@@ -26,6 +26,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 4: Colored CLI Help** - Styled, color-coded --help output with cross-platform terminal support
 - [ ] **Phase 5: HTML Documentation** - Auto-generated single-file HTML docs from clap command tree
+- [ ] **Phase 6: Local UI Interface** - UI/UX polished local interface for easy access and use
+- [ ] **Phase 7: Tokenization Report** - Verbose mode showing which data was tokenized per category
 
 ## Phase Details
 
@@ -58,10 +60,32 @@ Plans:
 Plans:
 - [ ] 05-01: TBD
 
+### Phase 6: Local UI Interface
+**Goal**: Users can access and use logtok through a polished, intuitive local UI interface — UI/UX perfect for easy access
+**Depends on**: Phase 5
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. TBD — define during discuss-phase
+**Plans**: TBD
+
+Plans:
+- [ ] 06-01: TBD
+
+### Phase 7: Tokenization Report
+**Goal**: Users can get a detailed report on which data was tokenized — verbose mode showing categories, counts, and patterns matched
+**Depends on**: Phase 3 (core tokenization)
+**Requirements**: TBD
+**Success Criteria** (what must be TRUE):
+  1. TBD — define during discuss-phase
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 4 -> 5
+Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -70,3 +94,5 @@ Phases execute in numeric order: 4 -> 5
 | 3. Diagnosis & Delivery | v1.0 | 3/3 | Complete | 2026-04-16 |
 | 4. Colored CLI Help | v2.0 | 0/1 | Not started | - |
 | 5. HTML Documentation | v2.0 | 0/? | Not started | - |
+| 6. Local UI Interface | v2.0 | 0/? | Not started | - |
+| 7. Tokenization Report | v2.0 | 0/? | Not started | - |

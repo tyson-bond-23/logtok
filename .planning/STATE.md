@@ -63,6 +63,11 @@ Recent decisions affecting current work:
 - Add local UI interface with uipro-cli (area: ui)
 - Add tokenization report verbose mode (area: general)
 
+### Roadmap Evolution
+
+- Phase 6 added: Local UI Interface — UI/UX polished local interface
+- Phase 7 added: Tokenization Report — verbose mode for tokenization details
+
 ### Blockers/Concerns
 
 None yet.
