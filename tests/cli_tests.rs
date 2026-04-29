@@ -100,3 +100,105 @@ fn test_detokenize_help() {
         .stdout(predicate::str::contains("--detailed"))
         .stdout(predicate::str::contains("--store"));
 }
+
+#[test]
+fn test_no_color_compliance() {
+    let output = Command::cargo_bin("logtok")
+        .unwrap()
+        .arg("--help")
+        .env("NO_COLOR", "1")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    // ANSI escape codes start with ESC[ (0x1b 0x5b)
+    assert!(
+        !stdout.contains("\x1b["),
+        "Help output should not contain ANSI escape codes when NO_COLOR=1 is set. Found: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_colored_output_with_clicolor_force() {
+    let output = Command::cargo_bin("logtok")
+        .unwrap()
+        .arg("--help")
+        .env("CLICOLOR_FORCE", "1")
+        .env_remove("NO_COLOR")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    // With CLICOLOR_FORCE=1, ANSI codes should be present even when piped
+    assert!(
+        stdout.contains("\x1b["),
+        "Help output should contain ANSI escape codes when CLICOLOR_FORCE=1. Got: {}",
+        stdout
+    );
+}
+
+#[test]
+fn test_root_help_has_examples() {
+    Command::cargo_bin("logtok")
+        .unwrap()
+        .arg("--help")
+        .env("NO_COLOR", "1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("logtok tokenize server.log"))
+        .stdout(predicate::str::contains("logtok detokenize response.txt"));
+}
+
+#[test]
+fn test_tokenize_help_has_examples() {
+    Command::cargo_bin("logtok")
+        .unwrap()
+        .args(["tokenize", "--help"])
+        .env("NO_COLOR", "1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Examples:"))
+        .stdout(predicate::str::contains("logtok tokenize server.log"));
+}
+
+#[test]
+fn test_detokenize_help_has_examples() {
+    Command::cargo_bin("logtok")
+        .unwrap()
+        .args(["detokenize", "--help"])
+        .env("NO_COLOR", "1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Examples:"))
+        .stdout(predicate::str::contains("logtok detokenize response.txt"));
+}
+
+#[test]
+fn test_reset_store_help_has_long_description() {
+    Command::cargo_bin("logtok")
+        .unwrap()
+        .args(["reset-store", "--help"])
+        .env("NO_COLOR", "1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Removes the .logtok/store.enc"))
+        .stdout(predicate::str::contains("Examples:"))
+        .stdout(predicate::str::contains("logtok reset-store"));
+}
+
+#[test]
+fn test_piped_help_no_ansi_codes() {
+    // assert_cmd captures stdout via pipe, so anstream should strip ANSI
+    let output = Command::cargo_bin("logtok")
+        .unwrap()
+        .arg("--help")
+        .env_remove("CLICOLOR_FORCE")
+        .env_remove("NO_COLOR")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        !stdout.contains("\x1b["),
+        "Piped help output should not contain ANSI escape codes. Got: {}",
+        stdout
+    );
+}
