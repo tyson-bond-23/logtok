@@ -21,8 +21,8 @@ Engineers can diagnose production log errors through Claude Code without reveali
 ## Current State
 
 **Shipped:** v1.0 MVP (2026-04-28)
-**Codebase:** 3,311 lines of Rust across 13 source files
-**Tech stack:** Rust 1.94, clap 4.6, regex, serde_json, aes-gcm, argon2, indicatif
+**Phase 5 complete:** `logtok docs` generates self-contained HTML documentation from clap command tree
+**Tech stack:** Rust 1.94, clap 4.6, askama 0.15, regex, serde_json, aes-gcm, argon2, indicatif
 
 **What's working:**
 - Tokenize logs (JSON and plain text) with 19-category detection
@@ -50,10 +50,10 @@ Engineers can diagnose production log errors through Claude Code without reveali
 
 ### Active
 
-- [ ] Colored, visually structured CLI help output
-- [ ] Auto-generated single-file HTML documentation page with install guide, quick start, and command reference
-- [ ] `logtok docs` command that generates HTML from CLI's actual commands
-- [ ] Professional design targeted at developers and DevOps
+- [x] Colored, visually structured CLI help output — Validated in Phase 4
+- [x] Auto-generated single-file HTML documentation page with install guide, quick start, and command reference — Validated in Phase 5
+- [x] `logtok docs` command that generates HTML from CLI's actual commands — Validated in Phase 5
+- [x] Professional design targeted at developers and DevOps — Validated in Phase 5
 
 ### Out of Scope
 
@@ -85,6 +85,7 @@ Engineers can diagnose production log errors through Claude Code without reveali
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
+| Askama 0.15 for HTML docs | Compile-time templating, no runtime overhead, embedded in binary | ✓ Good |
 | Language: Rust | Performance + cross-platform + single binary + memory safety | ✓ Good |
 | Block-based processing | Handle large files efficiently, future-proof for streaming | ✓ Good |
 | Encrypted local token store | Security — mappings persist across sessions but never leave machine | ✓ Good |
@@ -110,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 after v2.0 milestone started*
+*Last updated: 2026-04-29 after Phase 05 completion*
