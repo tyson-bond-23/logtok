@@ -57,7 +57,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Create Askama HTML template with dark theme, sidebar, content sections, and copy-to-clipboard JS
+- [x] 05-01-PLAN.md — Create Askama HTML template with dark theme, sidebar, content sections, and copy-to-clipboard JS
 - [ ] 05-02-PLAN.md — Build docs.rs module with clap introspection, CLI integration, and integration tests
 
 ### Phase 6: Local UI Interface
