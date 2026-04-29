@@ -102,4 +102,18 @@ Examples:
 Examples:
   logtok reset-store    Delete the token store in the current directory")]
     ResetStore,
+
+    /// Generate HTML documentation
+    ///
+    /// Creates a self-contained HTML file with full command reference,
+    /// getting started guide, and token categories table.
+    #[command(after_long_help = "\
+Examples:
+  logtok docs                        Generate logtok-docs.html in current directory
+  logtok docs -o ~/Desktop/docs.html Generate docs at specific path")]
+    Docs {
+        /// Output file path (default: logtok-docs.html in current directory)
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
 }

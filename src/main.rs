@@ -4,6 +4,7 @@ mod compactor;
 mod config;
 mod detokenizer;
 mod detector;
+mod docs;
 mod error;
 mod json_processor;
 mod processor;
@@ -155,6 +156,21 @@ fn main() -> Result<()> {
             let store = store::Store::new(&store_dir)?;
             store.reset()?;
             eprintln!("logtok: token store reset");
+        }
+
+        Commands::Docs { output } => {
+            let output_path = output.unwrap_or_else(|| {
+                std::env::current_dir()
+                    .expect("Cannot determine current directory")
+                    .join("logtok-docs.html")
+            });
+
+            docs::generate_docs(&output_path)
+                .context("Failed to generate documentation")?;
+
+            if !cli.quiet {
+                eprintln!("logtok: documentation written to {}", output_path.display());
+            }
         }
     }
 
