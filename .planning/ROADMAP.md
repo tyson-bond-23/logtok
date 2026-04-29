@@ -37,10 +37,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Running `logtok --help` displays colored section headers, bold flag names, and a styled usage line
   2. Setting `NO_COLOR=1` or unsetting `CLICOLOR` causes help output to render without any ANSI color codes
   3. Help output renders correctly (no garbled escape sequences) on Windows cmd.exe, PowerShell, and Unix terminals
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 04-01: TBD
+- [ ] 04-01-PLAN.md -- Add colored styles, help content, and integration tests
 
 ### Phase 5: HTML Documentation
 **Goal**: Users can generate a professional, self-contained HTML documentation page directly from the CLI — always in sync with actual commands
@@ -68,5 +68,5 @@ Phases execute in numeric order: 4 -> 5
 | 1. Core Tokenization Engine | v1.0 | 3/3 | Complete | 2026-04-14 |
 | 2. Detection & Token Store | v1.0 | 3/3 | Complete | 2026-04-15 |
 | 3. Diagnosis & Delivery | v1.0 | 3/3 | Complete | 2026-04-16 |
-| 4. Colored CLI Help | v2.0 | 0/? | Not started | - |
+| 4. Colored CLI Help | v2.0 | 0/1 | Not started | - |
 | 5. HTML Documentation | v2.0 | 0/? | Not started | - |
