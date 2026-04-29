@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>logtok v{{ version }} Documentation</title>
+  <style>
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Base */
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    nav.sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      background: #16213e;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+      border-right: 1px solid #333366;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    nav.sidebar .sidebar-title {
+      color: #f0c040;
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #333366;
+    }
+
+    nav.sidebar ul {
+      list-style: none;
+    }
+
+    nav.sidebar ul li {
+      margin-bottom: 0.25rem;
+    }
+
+    nav.sidebar ul li a {
+      color: #36d1dc;
+      text-decoration: none;
+      display: block;
+      padding: 0.35rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+
+    nav.sidebar ul li a:hover {
+      background: rgba(54, 209, 220, 0.1);
+    }
+
+    nav.sidebar ul li.nested {
+      padding-left: 1rem;
+    }
+
+    nav.sidebar ul li.nested a {
+      font-size: 0.875rem;
+      color: #a0d0d4;
+    }
+
+    nav.sidebar ul li.section-label {
+      color: #f0c040;
+      font-weight: bold;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+      padding: 0.35rem 0.5rem;
+    }
+
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      z-index: 200;
+      background: #16213e;
+      border: 1px solid #333366;
+      border-radius: 6px;
+      padding: 0.5rem;
+      cursor: pointer;
+      width: 40px;
+      height: 36px;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #f0c040;
+      border-radius: 1px;
+      transition: transform 0.3s, opacity 0.3s;
+    }
+
+    .hamburger.active span:nth-child(1) {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger.active span:nth-child(3) {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Main content */
+    main.content {
+      margin-left: 260px;
+      max-width: 860px;
+      padding: 2rem 2.5rem;
+    }
+
+    /* Headings */
+    h1 {
+      color: #f0c040;
+      font-weight: bold;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #333366;
+    }
+
+    h2 {
+      color: #f0c040;
+      font-weight: bold;
+      font-size: 1.5rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid #333366;
+    }
+
+    h3 {
+      color: #f0c040;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Paragraphs */
+    p {
+      margin-bottom: 1rem;
+    }
+
+    /* Links */
+    a { color: #36d1dc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Inline code */
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+      color: #4ecca3;
+      background: #242444;
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+    }
+
+    /* Code blocks */
+    .code-block {
+      position: relative;
+      margin-bottom: 1.25rem;
+    }
+
+    .code-block pre {
+      background: #242444;
+      border: 1px solid #333366;
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    .code-block pre code {
+      background: none;
+      padding: 0;
+      color: #4ecca3;
+      font-size: 0.9rem;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(36, 36, 68, 0.8);
+      border: 1px solid #333366;
+      border-radius: 4px;
+      color: #e0e0e0;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.2rem 0.4rem;
+      line-height: 1;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .copy-btn:hover {
+      opacity: 1;
+    }
+
+    .copy-btn.copied {
+      color: #4ecca3;
+      opacity: 1;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+
+    th {
+      background: #16213e;
+      color: #f0c040;
+      font-weight: bold;
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 2px solid #333366;
+      font-size: 0.9rem;
+    }
+
+    td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #2a2a4a;
+      font-size: 0.9rem;
+    }
+
+    tr:nth-child(even) td {
+      background: #242444;
+    }
+
+    tr:nth-child(odd) td {
+      background: #1e1e3a;
+    }
+
+    /* Flags table specific */
+    td code {
+      background: none;
+      padding: 0;
+      white-space: nowrap;
+    }
+
+    /* Steps */
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      background: #36d1dc;
+      color: #1a1a2e;
+      font-weight: bold;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content strong {
+      color: #f0c040;
+    }
+
+    /* Workflow diagram */
+    .workflow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      flex-wrap: wrap;
+    }
+
+    .workflow-step {
+      background: #16213e;
+      border: 1px solid #333366;
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      text-align: center;
+      color: #4ecca3;
+      font-weight: bold;
+    }
+
+    .workflow-arrow {
+      color: #f0c040;
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    /* Warning/note */
+    .note {
+      background: #242444;
+      border-left: 3px solid #36d1dc;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .warning {
+      background: #242444;
+      border-left: 3px solid #ff6b6b;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.25rem;
+      border-radius: 0 6px 6px 0;
+      color: #ff6b6b;
+    }
+
+    /* Required badge */
+    .badge-required {
+      background: #ff6b6b;
+      color: #1a1a2e;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+      margin-left: 0.5rem;
+    }
+
+    /* Section divider */
+    section {
+      margin-bottom: 2rem;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #333366;
+      color: #666;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+
+      nav.sidebar {
+        transform: translateX(-100%);
+      }
+
+      nav.sidebar.open {
+        transform: translateX(0);
+      }
+
+      main.content {
+        margin-left: 0;
+        padding: 1.5rem 1rem;
+        padding-top: 4rem;
+      }
+    }
+
+    /* Back to top */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #16213e;
+      border: 1px solid #333366;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #36d1dc;
+      font-size: 1.2rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s;
+      text-decoration: none;
+    }
+
+    .back-to-top.visible {
+      opacity: 0.8;
+    }
+
+    .back-to-top:hover {
+      opacity: 1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-title">logtok v{{ version }}</div>
+    <ul>
+      <li><a href="#getting-started">Getting Started</a></li>
+      <li><a href="#overview">Overview</a></li>
+      <li class="section-label">Commands</li>
+      {% for cmd in commands %}
+      <li class="nested"><a href="#cmd-{{ cmd.name }}">{{ cmd.name }}</a></li>
+      {% endfor %}
+      <li class="nested"><a href="#global-options">Global Options</a></li>
+      <li><a href="#token-categories">Token Categories</a></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1 id="top">logtok Documentation</h1>
+    <p>
+      <strong>Version {{ version }}</strong> &mdash;
+      Tokenize sensitive data out of log files for safe AI analysis.
+    </p>
+
+    <!-- Getting Started -->
+    <section id="getting-started">
+      <h2>Getting Started</h2>
+
+      <h3>Install</h3>
+      <div class="code-block">
+        <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">&#128203;</button>
+        <pre><code>cargo install logtok</code></pre>
+      </div>
+
+      <h3>Quick Start</h3>
+      <p>Three steps to safely diagnose production log errors with AI:</p>
+
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <strong>Tokenize</strong> &mdash; Remove sensitive data from your logs
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">&#128203;</button>
+            <pre><code>logtok tokenize server.log -o safe.log</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <strong>Analyze</strong> &mdash; Send the tokenized <code>safe.log</code> to Claude Code (or any LLM) for error diagnosis. All sensitive values have been replaced with safe tokens like <code>[IP_001]</code> and <code>[KEY_002]</code>.
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <strong>De-tokenize</strong> &mdash; Restore real values in the AI response
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">&#128203;</button>
+            <pre><code>logtok detokenize response.txt</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="note">
+        Token mappings are stored in an encrypted local store (AES-256-GCM). Sensitive data never leaves your machine.
+      </div>
+    </section>
+
+    <!-- Overview -->
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>
+        <strong>logtok</strong> removes credentials, PII, and infrastructure details from application logs,
+        replacing them with deterministic tokens. After AI diagnosis, de-tokenize the response to restore
+        real values &mdash; without ever exposing the original secrets.
+      </p>
+
+      <div class="workflow">
+        <div class="workflow-step">Tokenize</div>
+        <div class="workflow-arrow">&rarr;</div>
+        <div class="workflow-step">Analyze with AI</div>
+        <div class="workflow-arrow">&rarr;</div>
+        <div class="workflow-step">De-tokenize</div>
+      </div>
+
+      <p><strong>Key features:</strong></p>
+      <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+        <li>19 detection categories: IPs, API keys, emails, JWTs, PEM certificates, and more</li>
+        <li>Encrypted token store (AES-256-GCM + Argon2id key derivation)</li>
+        <li>Deterministic tokens &mdash; same value always maps to the same token</li>
+        <li>Block-based processing for large files (GB-scale)</li>
+        <li>Cross-platform single binary (Windows, macOS, Linux, ARM)</li>
+        <li>Configurable detection via <code>.logtok.toml</code></li>
+      </ul>
+    </section>
+
+    <!-- Command Reference -->
+    <section id="command-reference">
+      <h2>Command Reference</h2>
+
+      {% for cmd in commands %}
+      <section id="cmd-{{ cmd.name }}">
+        <h3><code>logtok {{ cmd.name }}</code></h3>
+        <p>{{ cmd.about }}</p>
+        {% if let Some(ref long) = cmd.long_about %}
+        <p>{{ long }}</p>
+        {% endif %}
+
+        {% if !cmd.args.is_empty() %}
+        <table>
+          <thead>
+            <tr>
+              <th>Flag</th>
+              <th>Description</th>
+              <th>Default</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for arg in cmd.args %}
+            <tr>
+              <td>
+                <code>{% if let Some(s) = arg.short %}-{{ s }}{% if arg.long.is_some() %}, {% endif %}{% endif %}{% if let Some(ref l) = arg.long %}--{{ l }}{% endif %}</code>
+                {% if arg.required %}<span class="badge-required">required</span>{% endif %}
+              </td>
+              <td>{{ arg.help }}</td>
+              <td>{% if let Some(ref dv) = arg.default_value %}<code>{{ dv }}</code>{% else %}&mdash;{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+
+        {% if let Some(ref help) = cmd.after_long_help %}
+        <h4 style="color: #e0e0e0; margin-top: 1rem; margin-bottom: 0.5rem;">Examples</h4>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">&#128203;</button>
+          <pre><code>{{ help }}</code></pre>
+        </div>
+        {% endif %}
+      </section>
+      {% endfor %}
+
+      <!-- Global Options -->
+      <section id="global-options">
+        <h3>Global Options</h3>
+        <p>These flags can be used with any subcommand.</p>
+
+        {% if !global_args.is_empty() %}
+        <table>
+          <thead>
+            <tr>
+              <th>Flag</th>
+              <th>Description</th>
+              <th>Default</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for garg in global_args %}
+            <tr>
+              <td>
+                <code>{% if let Some(s) = garg.short %}-{{ s }}{% if garg.long.is_some() %}, {% endif %}{% endif %}{% if let Some(ref l) = garg.long %}--{{ l }}{% endif %}</code>
+              </td>
+              <td>{{ garg.help }}</td>
+              <td>{% if let Some(ref dv) = garg.default_value %}<code>{{ dv }}</code>{% else %}&mdash;{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </section>
+    </section>
+
+    <!-- Token Categories -->
+    <section id="token-categories">
+      <h2>Token Categories</h2>
+      <p>
+        logtok detects and tokenizes sensitive data across 19 categories.
+        Each token follows the format <code>[CATEGORY_NNN]</code>, where <code>CATEGORY</code> is an
+        uppercase label and <code>NNN</code> is a counter. The same real value always maps to the same
+        token within a session.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Token Prefix</th>
+            <th>Represents</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in token_categories %}
+          <tr>
+            <td><code>[{{ cat.prefix }}_NNN]</code></td>
+            <td>{{ cat.description }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <footer>
+      Generated by <code>logtok docs</code> v{{ version }}
+    </footer>
+  </main>
+
+  <a href="#top" class="back-to-top" id="backToTop" title="Back to top">&uarr;</a>
+
+  <script>
+    /* Sidebar toggle */
+    (function() {
+      var hamburger = document.getElementById('hamburger');
+      var sidebar = document.getElementById('sidebar');
+
+      hamburger.addEventListener('click', function() {
+        hamburger.classList.toggle('active');
+        sidebar.classList.toggle('open');
+      });
+
+      /* Close sidebar on link click (mobile) */
+      var links = sidebar.querySelectorAll('a');
+      for (var i = 0; i < links.length; i++) {
+        links[i].addEventListener('click', function() {
+          if (window.innerWidth <= 768) {
+            hamburger.classList.remove('active');
+            sidebar.classList.remove('open');
+          }
+        });
+      }
+    })();
+
+    /* Copy to clipboard */
+    function copyCode(btn) {
+      var code = btn.parentElement.querySelector('code').textContent;
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(function() {
+          showCopied(btn);
+        });
+      } else {
+        var textarea = document.createElement('textarea');
+        textarea.value = code;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showCopied(btn);
+      }
+    }
+
+    function showCopied(btn) {
+      btn.textContent = '\u2713';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = '\u{1F4CB}'; btn.classList.remove('copied'); }, 2000);
+    }
+
+    /* Back to top button */
+    (function() {
+      var btn = document.getElementById('backToTop');
+      window.addEventListener('scroll', function() {
+        if (window.scrollY > 400) {
+          btn.classList.add('visible');
+        } else {
+          btn.classList.remove('visible');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
