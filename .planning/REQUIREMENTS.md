@@ -15,13 +15,13 @@ Requirements for developer experience milestone. Each maps to roadmap phases.
 
 ### HTML Documentation
 
-- [ ] **DOCS-01**: User can run `logtok docs` to generate a self-contained HTML documentation file
+- [x] **DOCS-01**: User can run `logtok docs` to generate a self-contained HTML documentation file
 - [x] **DOCS-02**: HTML page includes an install/getting-started guide with step-by-step instructions
-- [ ] **DOCS-03**: HTML page includes full command reference for all subcommands with flags, arguments, and descriptions
+- [x] **DOCS-03**: HTML page includes full command reference for all subcommands with flags, arguments, and descriptions
 - [x] **DOCS-04**: All code examples in HTML have copy-to-clipboard buttons that work across browsers
 - [x] **DOCS-05**: HTML is a single file with embedded CSS and JS — no external dependencies
 - [x] **DOCS-06**: HTML page has a clean, professional design targeted at developers and DevOps engineers
-- [ ] **DOCS-07**: Generated HTML stays in sync with actual CLI commands (derived from clap Command tree, not hardcoded)
+- [x] **DOCS-07**: Generated HTML stays in sync with actual CLI commands (derived from clap Command tree, not hardcoded)
 
 ## v2.1+ Requirements
 
@@ -61,13 +61,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HELP-01 | Phase 4 | Pending |
 | HELP-02 | Phase 4 | Pending |
 | HELP-03 | Phase 4 | Pending |
-| DOCS-01 | Phase 5 | Pending |
+| DOCS-01 | Phase 5 | Complete |
 | DOCS-02 | Phase 5 | Complete |
-| DOCS-03 | Phase 5 | Pending |
+| DOCS-03 | Phase 5 | Complete |
 | DOCS-04 | Phase 5 | Complete |
 | DOCS-05 | Phase 5 | Complete |
 | DOCS-06 | Phase 5 | Complete |
-| DOCS-07 | Phase 5 | Pending |
+| DOCS-07 | Phase 5 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 10 total
