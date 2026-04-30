@@ -40,7 +40,7 @@ struct DocsTemplate<'a> {
 }
 
 /// Returns all 19 token categories with descriptions.
-fn get_token_categories() -> Vec<TokenCategory> {
+pub fn get_token_categories() -> Vec<TokenCategory> {
     vec![
         TokenCategory { prefix: "IP".into(), description: "IP addresses (v4 and v6)".into() },
         TokenCategory { prefix: "HOST".into(), description: "Hostnames and domain names".into() },
@@ -65,7 +65,7 @@ fn get_token_categories() -> Vec<TokenCategory> {
 }
 
 /// Extract command metadata and global args from the clap Command tree.
-fn extract_commands() -> (Vec<CommandInfo>, Vec<ArgInfo>) {
+pub fn extract_commands() -> (Vec<CommandInfo>, Vec<ArgInfo>) {
     let mut cmd = Cli::command();
     cmd.build();
 

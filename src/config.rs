@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use crate::detector::{CustomPatternDef, DetectionConfig};
 
 /// Top-level config from .logtok.toml
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, serde::Serialize, Default, Debug)]
 pub struct LoktokConfig {
     #[serde(default)]
     pub detection: DetectionSection,
@@ -12,7 +12,7 @@ pub struct LoktokConfig {
     pub store: StoreSection,
 }
 
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, serde::Serialize, Default, Debug)]
 pub struct DetectionSection {
     /// Categories to disable (all enabled by default)
     #[serde(default)]
@@ -22,7 +22,7 @@ pub struct DetectionSection {
     pub custom_patterns: Vec<CustomPatternToml>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, serde::Serialize, Debug, Clone)]
 pub struct CustomPatternToml {
     pub name: String,
     pub pattern: String,
@@ -30,7 +30,7 @@ pub struct CustomPatternToml {
     pub capture_group: Option<usize>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, serde::Serialize, Debug)]
 pub struct StoreSection {
     /// TTL for token mappings in days (default 30)
     #[serde(default = "default_ttl_days")]
