@@ -99,11 +99,25 @@ function app() {
       document.body.addEventListener('htmx:afterSwap', function(evt) {
         var target = evt.detail.target;
         var html = target.innerHTML;
-        if (html.indexOf('text-emerald-400') !== -1 || html.indexOf('border-emerald-500') !== -1) {
-          self.showToast(self.t['status.tokenized'] || 'Completed successfully', 'success');
-        } else if (html.indexOf('text-red-400') !== -1 || html.indexOf('border-red-500') !== -1) {
-          var msg = target.querySelector('div') ? target.querySelector('div').textContent.trim() : '';
+        var id = target.id || '';
+        var isError = html.indexOf('text-red-400') !== -1 || html.indexOf('border-red-500') !== -1;
+        var isSuccess = html.indexOf('text-emerald-400') !== -1 || html.indexOf('border-emerald-500') !== -1;
+
+        if (isError) {
+          var errDiv = target.querySelector('div');
+          var msg = errDiv ? errDiv.textContent.trim() : '';
           self.showToast(msg || self.t['status.error'] || 'An error occurred', 'error');
+        } else if (isSuccess) {
+          // Detect which action completed
+          if (id === 'tokenize-result') {
+            self.showToast(self.t['status.tokenized'] || 'Tokenized successfully', 'success');
+          } else if (id === 'detokenize-result') {
+            self.showToast(self.t['status.detokenized'] || 'Detokenized successfully', 'success');
+          } else if (id === 'config-result') {
+            self.showToast(self.t['status.config_saved'] || 'Configuration saved', 'success');
+          } else {
+            self.showToast('Completed successfully', 'success');
+          }
         }
       });
 
