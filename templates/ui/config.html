@@ -1,10 +1,12 @@
 <div class="tab-panel">
-  <h2>Configuration</h2>
   <div id="config-content"
        hx-get="/api/config"
        hx-trigger="load"
        hx-swap="innerHTML">
-    <div class="htmx-indicator">Loading configuration...</div>
+    <div class="htmx-indicator loading-bar">
+      <div class="spinner"></div>
+      <span>Loading configuration...</span>
+    </div>
   </div>
 </div>
 
@@ -17,9 +19,11 @@ function addPatternRow() {
   var div = document.createElement('div');
   div.className = 'pattern-row';
   div.innerHTML =
-    '<input type="text" name="pattern_' + idx + '_name" value="" placeholder="Name">' +
-    '<input type="text" name="pattern_' + idx + '_regex" value="" placeholder="Regex">' +
-    '<input type="number" name="pattern_' + idx + '_group" value="0" placeholder="Group">';
+    '<input type="text" name="pattern_' + idx + '_name" value="" placeholder="Pattern name">' +
+    '<input type="text" name="pattern_' + idx + '_regex" value="" placeholder="Regex pattern">' +
+    '<input type="number" name="pattern_' + idx + '_group" value="0" placeholder="Group">' +
+    '<button type="button" class="btn-remove-pattern" onclick="this.parentElement.remove()">&times;</button>';
   list.appendChild(div);
+  div.querySelector('input').focus();
 }
 </script>

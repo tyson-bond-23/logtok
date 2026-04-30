@@ -2,25 +2,58 @@
   <form hx-post="/api/detokenize"
         hx-target="#detokenize-result"
         hx-encoding="multipart/form-data"
-        hx-indicator="#detokenize-spinner">
+        hx-indicator="#detokenize-spinner"
+        x-data="{ dragging: false, fileName: '' }">
 
-    <div class="input-section">
-      <label for="detokenize-content" data-i18n="detokenize.label">
-        Paste tokenized text (from Claude Code response, etc.):
-      </label>
-      <textarea id="detokenize-content" name="content" rows="12" class="input-textarea"
-                placeholder="Paste tokenized text here (e.g., text containing [IP_001], [USER_001], etc.)..."
-                data-i18n-placeholder="detokenize.placeholder"></textarea>
-      <button type="submit" class="btn-primary" data-i18n="detokenize.submit">Detokenize</button>
+    <!-- Unified input: paste tokenized text OR drop/pick a file -->
+    <div class="input-zone"
+         :class="{ 'zone-active': dragging }"
+         @dragover.prevent="dragging = true"
+         @dragenter.prevent="dragging = true"
+         @dragleave.prevent="dragging = false"
+         @drop.prevent="
+           dragging = false;
+           const files = $event.dataTransfer.files;
+           if (files.length > 0) {
+             const input = $el.querySelector('input[type=file]');
+             input.files = files;
+             fileName = files[0].name;
+             $el.closest('form').requestSubmit();
+           }
+         ">
+
+      <textarea id="detokenize-content" name="content" rows="10" class="input-textarea"
+                placeholder="Paste tokenized text here (e.g. text containing [IP_001], [USER_001]...), or drag & drop a file..."></textarea>
+
+      <div class="input-zone-footer">
+        <div class="file-controls">
+          <label class="btn-file">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Choose file</span>
+            <input type="file" name="file" class="file-input-hidden"
+                   @change="
+                     if ($el.files.length > 0) {
+                       fileName = $el.files[0].name;
+                     }
+                   ">
+          </label>
+          <span x-show="fileName" class="file-name" x-text="fileName"></span>
+        </div>
+        <button type="submit" class="btn-action">Detokenize</button>
+      </div>
     </div>
   </form>
 
   <!-- Loading indicator -->
-  <div id="detokenize-spinner" class="htmx-indicator">
+  <div id="detokenize-spinner" class="htmx-indicator loading-bar">
     <div class="spinner"></div>
-    <span data-i18n="detokenize.processing">Restoring real values...</span>
+    <span>Restoring real values...</span>
   </div>
 
-  <!-- Result area (HTMX swaps response here) -->
+  <!-- Result area -->
   <div id="detokenize-result" class="result-area"></div>
 </div>

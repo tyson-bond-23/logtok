@@ -196,25 +196,48 @@ fn tokenize_input(
     Ok((output, stats))
 }
 
-/// POST /api/detokenize -- accepts multipart form data with `content` field.
+/// POST /api/detokenize -- accepts multipart form data with `content` field or file upload.
 /// Restores real values from the session token store.
 pub async fn api_detokenize(
     State(state): State<Arc<AppState>>,
     mut multipart: Multipart,
 ) -> Html<String> {
     let mut content: Option<String> = None;
+    let mut file_bytes: Option<Vec<u8>> = None;
     while let Ok(Some(field)) = multipart.next_field().await {
         let name = field.name().map(|n| n.to_string()).unwrap_or_default();
-        if name == "content" {
-            if let Ok(text) = field.text().await {
-                content = Some(text);
+        match name.as_str() {
+            "content" => {
+                if let Ok(t) = field.text().await {
+                    if !t.trim().is_empty() {
+                        content = Some(t);
+                    }
+                }
             }
+            "file" => {
+                if let Ok(bytes) = field.bytes().await {
+                    if !bytes.is_empty() {
+                        file_bytes = Some(bytes.to_vec());
+                    }
+                }
+            }
+            _ => {}
         }
     }
 
-    let Some(text) = content.filter(|t| !t.trim().is_empty()) else {
+    // Use content first, then file upload
+    let text = if let Some(c) = content {
+        c
+    } else if let Some(bytes) = file_bytes {
+        match String::from_utf8(bytes) {
+            Ok(s) if !s.trim().is_empty() => s,
+            _ => return Html(
+                "<div class='result-error'><p>File is empty or not valid text.</p></div>".to_string(),
+            ),
+        }
+    } else {
         return Html(
-            "<div class='result-error'><p>No content provided. Paste tokenized text to detokenize.</p></div>"
+            "<div class='result-error'><p>No content provided. Paste tokenized text or upload a file.</p></div>"
                 .to_string(),
         );
     };

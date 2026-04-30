@@ -62,19 +62,67 @@ pub async fn api_store(State(state): State<Arc<AppState>>) -> Html<String> {
     }
 }
 
-/// GET /api/docs -- returns HTML fragment with command reference and token categories.
+/// GET /api/docs -- returns HTML fragment with workflow, command reference, and token categories.
 pub async fn api_docs() -> Html<String> {
     let commands_html = build_commands_html();
     let categories_html = build_categories_html();
 
     Html(format!(
         "<div class='docs-panel'>\
-           <h2>Command Reference</h2>{}\
-           <h2>Token Categories</h2>\
-           <table class='token-table'>\
-             <thead><tr><th>Prefix</th><th>Description</th></tr></thead>\
-             <tbody>{}</tbody>\
-           </table>\
+           <div class='docs-flow'>\
+             <h2>How It Works</h2>\
+             <div class='flow-chart'>\
+               <div class='flow-step'>\
+                 <div class='flow-number'>1</div>\
+                 <div class='flow-content'>\
+                   <strong>Tokenize</strong>\
+                   <p>Feed your logs through logtok to replace sensitive data with safe tokens</p>\
+                   <code>logtok tokenize app.log -o safe.log</code>\
+                 </div>\
+               </div>\
+               <div class='flow-arrow'>\
+                 <svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
+                   <line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/>\
+                 </svg>\
+               </div>\
+               <div class='flow-step'>\
+                 <div class='flow-number'>2</div>\
+                 <div class='flow-content'>\
+                   <strong>Analyze with AI</strong>\
+                   <p>Send the tokenized logs to Claude, ChatGPT, or any AI for diagnosis</p>\
+                   <code>claude \"analyze errors in safe.log\"</code>\
+                 </div>\
+               </div>\
+               <div class='flow-arrow'>\
+                 <svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
+                   <line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/>\
+                 </svg>\
+               </div>\
+               <div class='flow-step'>\
+                 <div class='flow-number'>3</div>\
+                 <div class='flow-content'>\
+                   <strong>Detokenize</strong>\
+                   <p>Paste the AI response back to restore real values for a full readable report</p>\
+                   <code>logtok detokenize -f ai-response.md</code>\
+                 </div>\
+               </div>\
+             </div>\
+           </div>\
+           <div class='docs-section'>\
+             <h2>CLI Reference</h2>\
+             <p class='section-desc'>All available commands and their options</p>\
+             {}\
+           </div>\
+           <div class='docs-section'>\
+             <h2>Token Categories</h2>\
+             <p class='section-desc'>19 built-in categories of sensitive data that logtok detects</p>\
+             <div class='categories-table-wrap'>\
+               <table class='token-table'>\
+                 <thead><tr><th>Prefix</th><th>Detects</th></tr></thead>\
+                 <tbody>{}</tbody>\
+               </table>\
+             </div>\
+           </div>\
          </div>",
         commands_html, categories_html
     ))

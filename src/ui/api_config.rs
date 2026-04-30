@@ -24,33 +24,60 @@ pub async fn api_config_get() -> Html<String> {
     .await
     .unwrap_or((LoktokConfig::default(), String::new()));
 
-    // Build category toggles
+    // Build category toggle cards
     let mut category_toggles = String::new();
-    for cat in &CATEGORIES {
+    let cat_descriptions: [(&str, &str); 19] = [
+        ("IP", "IP addresses"),
+        ("HOST", "Hostnames"),
+        ("URL", "URLs & endpoints"),
+        ("PATH", "File paths"),
+        ("PORT", "Port numbers"),
+        ("EMAIL", "Email addresses"),
+        ("USER", "Usernames"),
+        ("PHONE", "Phone numbers"),
+        ("KEY", "API keys"),
+        ("PASS", "Passwords"),
+        ("CONN", "Connection strings"),
+        ("JWT", "JSON Web Tokens"),
+        ("PEM", "PEM certificates"),
+        ("UUID", "UUIDs/GUIDs"),
+        ("MAC", "MAC addresses"),
+        ("CC", "Credit cards"),
+        ("SSN", "Social security #"),
+        ("DOB", "Dates of birth"),
+        ("CUSTOM", "Custom patterns"),
+    ];
+    for (cat, desc) in &cat_descriptions {
         let disabled = cfg
             .detection
             .disabled
             .iter()
             .any(|d| d.eq_ignore_ascii_case(cat));
         let checked = if disabled { "" } else { "checked" };
+        let active_class = if disabled { "" } else { " cat-active" };
         category_toggles.push_str(&format!(
-            "<label class='toggle-label'>\
-               <input type='checkbox' name='enabled_{}' {} value='1'> {}\
+            "<label class='cat-card{}'>\
+               <input type='checkbox' name='enabled_{}' {} value='1' class='cat-checkbox'>\
+               <span class='cat-prefix'>{}</span>\
+               <span class='cat-desc'>{}</span>\
              </label>",
+            active_class,
             cat.to_lowercase(),
             checked,
-            cat
+            cat,
+            desc
         ));
     }
 
-    // Custom patterns section
+    // Custom patterns section with remove buttons
     let mut patterns_html = String::new();
     for (i, p) in cfg.detection.custom_patterns.iter().enumerate() {
         patterns_html.push_str(&format!(
             "<div class='pattern-row'>\
-               <input type='text' name='pattern_{}_name' value='{}' placeholder='Name'>\
-               <input type='text' name='pattern_{}_regex' value='{}' placeholder='Regex'>\
+               <input type='text' name='pattern_{}_name' value='{}' placeholder='Pattern name'>\
+               <input type='text' name='pattern_{}_regex' value='{}' placeholder='Regex pattern'>\
                <input type='number' name='pattern_{}_group' value='{}' placeholder='Group'>\
+               <button type='button' class='btn-remove-pattern' onclick='this.parentElement.remove()'>&times;</button>\
              </div>",
             i,
             escape_html(&p.name),
@@ -64,30 +91,58 @@ pub async fn api_config_get() -> Html<String> {
     let escaped_toml = escape_html(&raw_toml);
 
     Html(format!(
-        "<div class='config-panel' x-data=\"{{ configMode: 'form' }}\">\
-           <div class='config-mode-toggle'>\
-             <button type='button' @click=\"configMode = 'form'\" :class=\"{{ 'active': configMode === 'form' }}\" class='btn-secondary'>Form view</button>\
-             <button type='button' @click=\"configMode = 'toml'\" :class=\"{{ 'active': configMode === 'toml' }}\" class='btn-secondary'>Raw TOML</button>\
+        "<div class='config-panel' x-data=\"{{ configMode: 'form', patternCount: {} }}\">\
+           <div class='config-view-toggle'>\
+             <button type='button' @click=\"configMode = 'form'\" \
+                     :class=\"{{ 'toggle-active': configMode === 'form' }}\" class='toggle-btn'>Form View</button>\
+             <button type='button' @click=\"configMode = 'toml'\" \
+                     :class=\"{{ 'toggle-active': configMode === 'toml' }}\" class='toggle-btn'>Raw TOML</button>\
            </div>\
            <form hx-put='/api/config' hx-target='#config-result' hx-encoding='multipart/form-data'>\
              <div x-show=\"configMode === 'form'\">\
-               <h3>Detection Categories</h3>\
-               <div class='category-grid'>{}</div>\
-               <h3>Custom Patterns</h3>\
-               <div class='patterns-list' id='patterns-list'>{}</div>\
-               <button type='button' onclick='addPatternRow()' class='btn-secondary'>+ Add Pattern</button>\
-               <h3>Store Settings</h3>\
-               <label>TTL (days): <input type='number' name='ttl_days' value='{}' min='1' max='365'></label>\
+               <div class='config-section'>\
+                 <h3>Detection Categories</h3>\
+                 <p class='section-desc'>Toggle which types of sensitive data to detect</p>\
+                 <div class='category-cards'>{}</div>\
+               </div>\
+               <div class='config-section'>\
+                 <h3>Custom Patterns</h3>\
+                 <p class='section-desc'>Define your own regex patterns for domain-specific data</p>\
+                 <div class='patterns-list' id='patterns-list'>{}</div>\
+                 <button type='button' onclick='addPatternRow()' class='btn-add-pattern'>\
+                   <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
+                     <line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/>\
+                   </svg>\
+                   Add Pattern\
+                 </button>\
+               </div>\
+               <div class='config-section'>\
+                 <h3>Store Settings</h3>\
+                 <div class='ttl-row'>\
+                   <label for='ttl-input'>Token TTL</label>\
+                   <div class='ttl-input-group'>\
+                     <input type='number' id='ttl-input' name='ttl_days' value='{}' min='1' max='365' class='ttl-number'>\
+                     <span class='ttl-unit'>days</span>\
+                   </div>\
+                 </div>\
+               </div>\
              </div>\
              <div x-show=\"configMode === 'toml'\">\
                <textarea name='raw_toml' rows='20' class='toml-editor'>{}</textarea>\
              </div>\
-             <div class='form-actions'>\
-               <button type='submit' class='btn-primary'>Save Configuration</button>\
+             <div class='config-save-bar'>\
+               <button type='submit' class='btn-save'>\
+                 <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
+                   <path d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/>\
+                   <polyline points='17 21 17 13 7 13 7 21'/><polyline points='7 3 7 8 15 8'/>\
+                 </svg>\
+                 Save Configuration\
+               </button>\
              </div>\
            </form>\
            <div id='config-result'></div>\
          </div>",
+        cfg.detection.custom_patterns.len(),
         category_toggles, patterns_html, cfg.store.ttl_days, escaped_toml
     ))
 }
