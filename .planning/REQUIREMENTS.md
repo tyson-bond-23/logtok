@@ -25,7 +25,7 @@ Requirements for developer experience milestone. Each maps to roadmap phases.
 
 ### Local UI Interface
 
-- [ ] **UI-01**: Running `logtok ui` starts a local HTTP server on 127.0.0.1 and auto-opens the default browser
+- [x] **UI-01**: Running `logtok ui` starts a local HTTP server on 127.0.0.1 and auto-opens the default browser
 - [ ] **UI-02**: Dashboard has five tabs: Tokenize, Detokenize, Token Store, Config, Docs -- with top tab bar navigation
 - [ ] **UI-03**: Dark theme with modern dev tool aesthetic (#0f0f10 background, #6366f1 primary, #1c1c1e surface)
 - [ ] **UI-04**: Light theme with warm white palette (#fafaf5 range) -- theme follows OS preference via prefers-color-scheme
@@ -35,9 +35,9 @@ Requirements for developer experience milestone. Each maps to roadmap phases.
 - [ ] **UI-08**: Token Store browser displays current token mappings from the session store
 - [ ] **UI-09**: Config editor with form-based view (toggles per category, text fields) and raw TOML editor toggle
 - [ ] **UI-10**: Docs tab displays command reference and token categories derived from clap Command tree
-- [ ] **UI-11**: Server auto-stops when browser tab is closed via WebSocket heartbeat detection
-- [ ] **UI-12**: All frontend assets (HTML, CSS, JS) are embedded in the binary via rust-embed -- single binary distribution
-- [ ] **UI-13**: Encryption key is auto-generated per session -- no manual key entry required
+- [x] **UI-11**: Server auto-stops when browser tab is closed via WebSocket heartbeat detection
+- [x] **UI-12**: All frontend assets (HTML, CSS, JS) are embedded in the binary via rust-embed -- single binary distribution
+- [x] **UI-13**: Encryption key is auto-generated per session -- no manual key entry required
 - [ ] **UI-14**: Language preference, last active tab, and recent file paths persist via localStorage across sessions
 
 ## v2.1+ Requirements

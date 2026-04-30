@@ -76,7 +76,7 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Server foundation: deps, ui module tree, axum server, WebSocket heartbeat, rust-embed assets, CLI integration
+- [x] 06-01-PLAN.md — Server foundation: deps, ui module tree, axum server, WebSocket heartbeat, rust-embed assets, CLI integration
 - [ ] 06-02-PLAN.md — Dashboard shell: HTMX + Alpine.js, CSS themes (dark/light/RTL), base template, tab navigation, i18n
 - [ ] 06-03-PLAN.md — Tokenize + Detokenize panels: API handlers with core engine integration, HTMX templates with 4 input methods
 - [ ] 06-04-PLAN.md — Store browser + Docs + Config: API handlers for store/docs/config, HTMX templates with form/TOML editor
