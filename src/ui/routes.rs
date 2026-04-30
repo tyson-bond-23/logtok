@@ -7,7 +7,7 @@ use crate::ui::api_config::{api_config_get, api_config_put};
 use crate::ui::api_store::{api_docs, api_store};
 use crate::ui::api_tokenize::{api_detokenize, api_tokenize};
 use crate::ui::assets::static_handler;
-use crate::ui::handlers::dashboard;
+use crate::ui::handlers::{api_translations, dashboard};
 use crate::ui::ws::ws_heartbeat;
 use crate::ui::AppState;
 
@@ -22,6 +22,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
         .route("/api/docs", get(api_docs))
         .route("/api/config", get(api_config_get))
         .route("/api/config", put(api_config_put))
+        .route("/api/translations", get(api_translations))
         // WebSocket heartbeat for auto-stop (D-22)
         .route("/ws/heartbeat", get(ws_heartbeat))
         // Static assets served via rust-embed (D-15)
