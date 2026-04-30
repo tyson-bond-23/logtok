@@ -5,6 +5,9 @@
 .htmx-request.htmx-indicator { display: flex; }
 .light-mode select option { background: #fafaf5; color: #18181b; }
 
+/* Light-mode body background override (bg-surface-50 vs bg-surface-900 CSS order conflict) */
+body.light-mode { background-color: #fafaf5 !important; color: #18181b !important; }
+
 /* Light-mode overrides for server-rendered HTMX content */
 .light-mode .bg-surface-800 { background-color: #ffffff; }
 .light-mode .bg-surface-900\/50 { background-color: #f4f4f550; }
@@ -32,9 +35,20 @@
 
 /* Semantic classes for server-rendered headings (light/dark aware) */
 .docs-heading { color: #f4f4f5; }
-.light-mode .docs-heading { color: #18181b; }
+.light-mode .docs-heading { color: #18181b !important; }
 .cfg-heading { color: #f4f4f5; }
-.light-mode .cfg-heading { color: #18181b; }
+.light-mode .cfg-heading { color: #18181b !important; }
+
+/* Light-mode text overrides for server-rendered descriptions */
+.light-mode .text-zinc-500 { color: #71717a; }
+.light-mode .text-zinc-600 { color: #52525b; }
+
+/* Light-mode input/form overrides for config */
+.light-mode input[type="number"],
+.light-mode input[type="text"],
+.light-mode textarea { background-color: #ffffff !important; color: #18181b !important; border-color: #d4d4d8 !important; }
+.light-mode .border-t { border-color: #e4e4e7; }
+.light-mode .border-dashed { border-color: #d4d4d8; }
 
 /* Light-mode card overrides */
 .light-mode .docs-card { background-color: #ffffff; border-color: #e4e4e7; }
