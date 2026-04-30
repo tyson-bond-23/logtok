@@ -81,7 +81,7 @@ Plans:
 - [x] 06-03-PLAN.md — Tokenize + Detokenize panels: API handlers with core engine integration, HTMX templates with 4 input methods
 - [x] 06-04-PLAN.md — Store browser + Docs + Config: API handlers for store/docs/config, HTMX templates with form/TOML editor
 - [x] 06-05-PLAN.md — Integration tests + human verification checkpoint
-- [ ] 06-06-PLAN.md — Gap closure: remove CDN dependencies, add file_path input, fix theme colors
+- [x] 06-06-PLAN.md — Gap closure: remove CDN dependencies, add file_path input, fix theme colors
 
 ### Phase 7: Tokenization Report
 **Goal**: Users can get a detailed report on which data was tokenized — verbose mode showing categories, counts, and patterns matched
