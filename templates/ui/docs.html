@@ -1,1 +1,9 @@
-<div id="docs-panel"><p>Docs placeholder</p></div>
+<div class="tab-panel">
+  <h2>Documentation</h2>
+  <div id="docs-content"
+       hx-get="/api/docs"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="htmx-indicator">Loading documentation...</div>
+  </div>
+</div>

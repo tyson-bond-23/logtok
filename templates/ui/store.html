@@ -1,1 +1,9 @@
-<div id="store-panel"><p>Token Store placeholder</p></div>
+<div class="tab-panel">
+  <h2>Token Store</h2>
+  <div id="store-content"
+       hx-get="/api/store"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="htmx-indicator">Loading token store...</div>
+  </div>
+</div>

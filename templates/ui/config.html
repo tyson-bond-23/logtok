@@ -1,1 +1,25 @@
-<div id="config-panel"><p>Config placeholder</p></div>
+<div class="tab-panel">
+  <h2>Configuration</h2>
+  <div id="config-content"
+       hx-get="/api/config"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <div class="htmx-indicator">Loading configuration...</div>
+  </div>
+</div>
+
+<script>
+function addPatternRow() {
+  var list = document.getElementById('patterns-list');
+  if (!list) return;
+  var rows = list.querySelectorAll('.pattern-row');
+  var idx = rows.length;
+  var div = document.createElement('div');
+  div.className = 'pattern-row';
+  div.innerHTML =
+    '<input type="text" name="pattern_' + idx + '_name" value="" placeholder="Name">' +
+    '<input type="text" name="pattern_' + idx + '_regex" value="" placeholder="Regex">' +
+    '<input type="number" name="pattern_' + idx + '_group" value="0" placeholder="Group">';
+  list.appendChild(div);
+}
+</script>
