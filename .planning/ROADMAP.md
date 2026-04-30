@@ -73,14 +73,15 @@ Plans:
   6. Config editor provides form-based view with category toggles and raw TOML toggle for power users
   7. Server auto-stops when browser tab is closed via WebSocket heartbeat detection
   8. All assets embedded in binary via rust-embed — single binary distribution preserved
-**Plans**: 5 plans
+**Plans**: 6 plans
 
 Plans:
 - [x] 06-01-PLAN.md — Server foundation: deps, ui module tree, axum server, WebSocket heartbeat, rust-embed assets, CLI integration
 - [x] 06-02-PLAN.md — Dashboard shell: HTMX + Alpine.js, CSS themes (dark/light/RTL), base template, tab navigation, i18n
 - [x] 06-03-PLAN.md — Tokenize + Detokenize panels: API handlers with core engine integration, HTMX templates with 4 input methods
 - [x] 06-04-PLAN.md — Store browser + Docs + Config: API handlers for store/docs/config, HTMX templates with form/TOML editor
-- [ ] 06-05-PLAN.md — Integration tests + human verification checkpoint
+- [x] 06-05-PLAN.md — Integration tests + human verification checkpoint
+- [ ] 06-06-PLAN.md — Gap closure: remove CDN dependencies, add file_path input, fix theme colors
 
 ### Phase 7: Tokenization Report
 **Goal**: Users can get a detailed report on which data was tokenized — verbose mode showing categories, counts, and patterns matched
@@ -105,5 +106,5 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 | 3. Diagnosis & Delivery | v1.0 | 3/3 | Complete | 2026-04-16 |
 | 4. Colored CLI Help | v2.0 | 1/1 | Complete | 2026-04-29 |
 | 5. HTML Documentation | v2.0 | 2/2 | Complete | 2026-04-29 |
-| 6. Local UI Interface | v2.0 | 4/5 | Executing | - |
+| 6. Local UI Interface | v2.0 | 5/6 | Executing | - |
 | 7. Tokenization Report | v2.0 | 0/? | Not started | - |
