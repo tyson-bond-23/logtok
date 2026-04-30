@@ -1,16 +1,146 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="ltr" x-data="app()" :lang="lang" :dir="lang === 'he' ? 'rtl' : 'ltr'">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>logtok dashboard</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <script src="/static/htmx.min.js" defer></script>
+  <script>
+    window.__i18n = {
+    {%- for (key, val) in translations %}
+      "{{ key }}": "{{ val }}"{% if !loop.last %},{% endif %}
+    {%- endfor %}
+    };
+  </script>
   <script src="/static/alpine.min.js" defer></script>
+  <script src="/static/htmx.min.js" defer></script>
   <script src="/static/app.js" defer></script>
 </head>
-<body>
-  <h1>logtok v{{ version }}</h1>
-  <p>Dashboard loading... (plan 02 will replace this template)</p>
+<body :class="'theme-' + theme">
+
+  <!-- Navigation Bar -->
+  <nav class="nav-bar">
+    <div class="nav-tabs">
+      <button class="nav-tab"
+              :class="{ 'tab-active': tab === 'tokenize' }"
+              @click="setTab('tokenize')"
+              x-text="t['tab.tokenize'] || 'Tokenize'">Tokenize</button>
+      <button class="nav-tab"
+              :class="{ 'tab-active': tab === 'detokenize' }"
+              @click="setTab('detokenize')"
+              x-text="t['tab.detokenize'] || 'Detokenize'">Detokenize</button>
+      <button class="nav-tab"
+              :class="{ 'tab-active': tab === 'store' }"
+              @click="setTab('store')"
+              x-text="t['tab.store'] || 'Token Store'">Token Store</button>
+      <button class="nav-tab"
+              :class="{ 'tab-active': tab === 'config' }"
+              @click="setTab('config')"
+              x-text="t['tab.config'] || 'Config'">Config</button>
+      <button class="nav-tab"
+              :class="{ 'tab-active': tab === 'docs' }"
+              @click="setTab('docs')"
+              x-text="t['tab.docs'] || 'Docs'">Docs</button>
+    </div>
+
+    <div class="nav-controls">
+      <!-- Theme Toggle -->
+      <button class="nav-btn"
+              @click="toggleTheme()"
+              :title="t['label.theme_toggle'] || 'Toggle theme'"
+              :aria-label="t['label.theme_toggle'] || 'Toggle theme'">
+        <template x-if="theme === 'dark'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </template>
+        <template x-if="theme === 'light'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </template>
+      </button>
+
+      <!-- Language Selector -->
+      <select class="lang-select"
+              @change="setLang($event.target.value)"
+              :aria-label="t['label.language'] || 'Language'">
+        <option value="en" :selected="lang === 'en'">EN</option>
+        <option value="he" :selected="lang === 'he'">HE</option>
+      </select>
+
+      <!-- Version Badge -->
+      <span class="version-badge">v{{ version }}</span>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- Tokenize Tab -->
+    <div class="tab-panel" x-show="tab === 'tokenize'" x-cloak>
+      <div class="tab-panel-header">
+        <h2 x-text="t['tab.tokenize'] || 'Tokenize'">Tokenize</h2>
+        <p>Tokenize sensitive data from log files</p>
+      </div>
+      <div class="card">
+        <p class="empty-state">Tokenize panel will be loaded by Plan 03</p>
+      </div>
+    </div>
+
+    <!-- Detokenize Tab -->
+    <div class="tab-panel" x-show="tab === 'detokenize'" x-cloak>
+      <div class="tab-panel-header">
+        <h2 x-text="t['tab.detokenize'] || 'Detokenize'">Detokenize</h2>
+        <p>Restore tokenized values back to originals</p>
+      </div>
+      <div class="card">
+        <p class="empty-state">Detokenize panel will be loaded by Plan 03</p>
+      </div>
+    </div>
+
+    <!-- Token Store Tab -->
+    <div class="tab-panel" x-show="tab === 'store'" x-cloak>
+      <div class="tab-panel-header">
+        <h2 x-text="t['tab.store'] || 'Token Store'">Token Store</h2>
+        <p>Browse and manage stored token mappings</p>
+      </div>
+      <div class="card">
+        <p class="empty-state">Token Store browser will be loaded by Plan 03</p>
+      </div>
+    </div>
+
+    <!-- Config Tab -->
+    <div class="tab-panel" x-show="tab === 'config'" x-cloak>
+      <div class="tab-panel-header">
+        <h2 x-text="t['tab.config'] || 'Config'">Config</h2>
+        <p>Configure detection rules and custom patterns</p>
+      </div>
+      <div class="card">
+        <p class="empty-state">Config editor will be loaded by Plan 04</p>
+      </div>
+    </div>
+
+    <!-- Docs Tab -->
+    <div class="tab-panel" x-show="tab === 'docs'" x-cloak>
+      <div class="tab-panel-header">
+        <h2 x-text="t['tab.docs'] || 'Docs'">Docs</h2>
+        <p>logtok command reference and documentation</p>
+      </div>
+      <div class="card">
+        <p class="empty-state">Docs content will be loaded by Plan 04</p>
+      </div>
+    </div>
+
+  </main>
+
 </body>
 </html>

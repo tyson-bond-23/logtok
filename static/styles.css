@@ -1,2 +1,676 @@
-/* Placeholder -- Plan 02 replaces with full dark/light/RTL theme */
-body { font-family: system-ui, -apple-system, sans-serif; background: #0f0f10; color: #e4e4e7; margin: 0; padding: 2rem; }
+/* logtok dashboard -- dark/light theme system with RTL support */
+
+/* ============================================================
+   CSS Custom Properties (Dark Theme Default)
+   ============================================================ */
+:root {
+  --bg: #0f0f10;
+  --surface: #1c1c1e;
+  --border: #2a2a2c;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --success: #22c55e;
+  --error: #ef4444;
+  --text: #e4e4e7;
+  --text-muted: #71717a;
+  --nav-height: 56px;
+  --radius: 6px;
+  --radius-lg: 8px;
+}
+
+/* ============================================================
+   Reset & Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ============================================================
+   Dark Theme
+   ============================================================ */
+.theme-dark {
+  --bg: #0f0f10;
+  --surface: #1c1c1e;
+  --border: #2a2a2c;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --success: #22c55e;
+  --error: #ef4444;
+  --text: #e4e4e7;
+  --text-muted: #71717a;
+}
+
+/* ============================================================
+   Light Theme
+   ============================================================ */
+.theme-light {
+  --bg: #fafaf5;
+  --surface: #ffffff;
+  --border: #e4e4e2;
+  --primary: #4f46e5;
+  --primary-hover: #6366f1;
+  --success: #16a34a;
+  --error: #dc2626;
+  --text: #1c1c1e;
+  --text-muted: #71717a;
+}
+
+/* ============================================================
+   OS Theme Detection (initial load before Alpine.js hydrates)
+   ============================================================ */
+@media (prefers-color-scheme: light) {
+  body:not(.theme-dark):not(.theme-light) {
+    --bg: #fafaf5;
+    --surface: #ffffff;
+    --border: #e4e4e2;
+    --primary: #4f46e5;
+    --primary-hover: #6366f1;
+    --success: #16a34a;
+    --error: #dc2626;
+    --text: #1c1c1e;
+    --text-muted: #71717a;
+  }
+}
+
+/* ============================================================
+   Navigation Bar
+   ============================================================ */
+.nav-bar {
+  position: fixed;
+  top: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  height: var(--nav-height);
+  background: var(--surface);
+  border-block-end: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 1rem;
+  z-index: 100;
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 100%;
+}
+
+.nav-tab {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-inline: 1rem;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-block-end: 2px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.nav-tab:hover {
+  color: var(--text);
+}
+
+.nav-tab.tab-active {
+  color: var(--primary);
+  border-block-end-color: var(--primary);
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+
+.nav-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.lang-select {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lang-select:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+/* ============================================================
+   Main Content
+   ============================================================ */
+.main-content {
+  margin-block-start: var(--nav-height);
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+/* ============================================================
+   Tab Panels
+   ============================================================ */
+.tab-panel {
+  animation: fadeIn 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.tab-panel-header {
+  margin-block-end: 1.5rem;
+}
+
+.tab-panel-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tab-panel-header p {
+  color: var(--text-muted);
+  margin-block-start: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* ============================================================
+   Form Elements
+   ============================================================ */
+input[type="text"],
+input[type="number"],
+input[type="password"],
+textarea,
+select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  color: var(--text);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+
+textarea {
+  min-height: 200px;
+  resize: vertical;
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+}
+
+label {
+  display: block;
+  margin-block-end: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.form-group {
+  margin-block-end: 1rem;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, opacity 0.15s;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  border-color: var(--text-muted);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #ffffff;
+}
+
+.btn-danger {
+  background: var(--error);
+  color: #ffffff;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Drop Zone
+   ============================================================ */
+.drop-zone {
+  border: 2px dashed var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* ============================================================
+   Result Panel
+   ============================================================ */
+.result-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-block-start: 1rem;
+  overflow-x: auto;
+}
+
+.result-panel pre {
+  font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+}
+
+/* ============================================================
+   Token Table
+   ============================================================ */
+.token-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.token-table th {
+  text-align: start;
+  padding: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-block-end: 1px solid var(--border);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.token-table td {
+  padding: 0.75rem;
+  border-block-end: 1px solid var(--border);
+  color: var(--text);
+}
+
+.token-table tr:hover td {
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.token-table .token-value {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+}
+
+/* ============================================================
+   Config Form
+   ============================================================ */
+.config-form {
+  max-width: 640px;
+}
+
+.config-form .form-group {
+  margin-block-end: 1.25rem;
+}
+
+.config-section {
+  margin-block-end: 2rem;
+}
+
+.config-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-block-end: 1rem;
+  padding-block-end: 0.5rem;
+  border-block-end: 1px solid var(--border);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+}
+
+.toggle-switch.active {
+  background: var(--primary);
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch.active::after {
+  transform: translateX(18px);
+}
+
+[dir="rtl"] .toggle-switch.active::after {
+  transform: translateX(-18px);
+}
+
+/* ============================================================
+   HTMX Indicator
+   ============================================================ */
+.htmx-indicator {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  display: inline-flex;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-block-start-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   Status Messages
+   ============================================================ */
+.status-success {
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid var(--success);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  color: var(--success);
+  font-size: 0.875rem;
+}
+
+.status-error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--error);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  color: var(--error);
+  font-size: 0.875rem;
+}
+
+/* ============================================================
+   Cards
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.card + .card {
+  margin-block-start: 1rem;
+}
+
+/* ============================================================
+   Separator
+   ============================================================ */
+.separator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin-block: 1rem;
+}
+
+.separator::before,
+.separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ============================================================
+   RTL Support -- logical properties used throughout;
+   explicit overrides only where needed
+   ============================================================ */
+[dir="rtl"] .nav-tabs {
+  /* flex-direction stays row; browser reverses with dir=rtl */
+}
+
+[dir="rtl"] .icon-flip {
+  transform: scaleX(-1);
+}
+
+/* ============================================================
+   Responsive -- mobile (<768px)
+   ============================================================ */
+@media (max-width: 768px) {
+  .nav-bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding-block: 0.5rem;
+  }
+
+  .nav-tabs {
+    order: 2;
+    width: 100%;
+    overflow-x: auto;
+    padding-block-start: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-controls {
+    order: 1;
+    margin-inline-start: auto;
+  }
+
+  .main-content {
+    padding: 1rem;
+    margin-block-start: calc(var(--nav-height) + 40px);
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0.75rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================================
+   Version Badge
+   ============================================================ */
+.version-badge {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-inline-start: 0.5rem;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+}
+
+/* ============================================================
+   Empty State
+   ============================================================ */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-state p {
+  margin-block-start: 0.5rem;
+}
+
+/* ============================================================
+   Action Bar (button row)
+   ============================================================ */
+.action-bar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.action-bar-end {
+  margin-inline-start: auto;
+}
+
+/* ============================================================
+   Recent Files List
+   ============================================================ */
+.recent-list {
+  list-style: none;
+  padding: 0;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.8125rem;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  color: var(--text-muted);
+  transition: background 0.1s;
+}
+
+.recent-item:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.recent-item-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.recent-item-remove:hover {
+  color: var(--error);
+}
