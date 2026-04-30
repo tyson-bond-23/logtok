@@ -13,7 +13,7 @@
     <div class="rounded-2xl border overflow-hidden transition-colors"
          :class="[
            dragging ? 'border-brand-500 ring-2 ring-brand-500/20' : '',
-           theme === 'light' ? 'border-zinc-200 bg-white' : 'border-zinc-800 bg-surface-800'
+           theme === 'light' ? 'border-zinc-200 bg-surface-50' : 'border-zinc-800 bg-surface-800'
          ]"
          @dragover.prevent="dragging = true"
          @dragenter.prevent="dragging = true"

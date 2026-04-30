@@ -4,27 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>logtok</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 50: '#eef2ff', 100: '#e0e7ff', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 900: '#312e81' },
-            surface: { 50: '#fafafa', 100: '#f4f4f5', 200: '#e4e4e7', 700: '#18181b', 800: '#111113', 900: '#0a0a0b', 950: '#050506' },
-          },
-          fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['"JetBrains Mono"', '"Fira Code"', '"Cascadia Code"', 'monospace'],
-          },
-        }
-      }
-    }
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
   <script>
     window.__i18n = {
@@ -38,11 +17,11 @@
   <script src="/static/htmx.min.js" defer></script>
 </head>
 <body class="bg-surface-900 text-zinc-100 font-sans antialiased min-h-screen"
-      :class="theme === 'light' ? 'light-mode bg-white text-zinc-900' : 'bg-surface-900 text-zinc-100'">
+      :class="theme === 'light' ? 'light-mode bg-surface-50 text-zinc-900' : 'bg-surface-900 text-zinc-100'"
 
   <!-- Top Navigation -->
   <nav class="fixed top-0 inset-x-0 z-50 border-b backdrop-blur-xl"
-       :class="theme === 'light' ? 'bg-white/80 border-zinc-200' : 'bg-surface-900/80 border-zinc-800'">
+       :class="theme === 'light' ? 'bg-surface-50/80 border-zinc-200' : 'bg-surface-900/80 border-zinc-800'">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
 
       <!-- Logo + Tabs -->
