@@ -1,11 +1,16 @@
-<div class="tab-panel">
+<div>
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold tracking-tight" :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Configuration</h1>
+    <p class="mt-1 text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">Detection categories, custom patterns, and store settings</p>
+  </div>
+
   <div id="config-content"
        hx-get="/api/config"
        hx-trigger="load"
        hx-swap="innerHTML">
-    <div class="htmx-indicator loading-bar">
-      <div class="spinner"></div>
-      <span>Loading configuration...</span>
+    <div class="flex items-center gap-2 text-sm text-zinc-400">
+      <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+      Loading configuration...
     </div>
   </div>
 </div>
@@ -17,12 +22,12 @@ function addPatternRow() {
   var rows = list.querySelectorAll('.pattern-row');
   var idx = rows.length;
   var div = document.createElement('div');
-  div.className = 'pattern-row';
+  div.className = 'pattern-row grid grid-cols-[1fr_2fr_70px_32px] gap-2 mb-2 items-center';
   div.innerHTML =
-    '<input type="text" name="pattern_' + idx + '_name" value="" placeholder="Pattern name">' +
-    '<input type="text" name="pattern_' + idx + '_regex" value="" placeholder="Regex pattern">' +
-    '<input type="number" name="pattern_' + idx + '_group" value="0" placeholder="Group">' +
-    '<button type="button" class="btn-remove-pattern" onclick="this.parentElement.remove()">&times;</button>';
+    '<input type="text" name="pattern_' + idx + '_name" value="" placeholder="Name" class="px-3 py-2 text-sm rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 focus:outline-none focus:border-brand-500">' +
+    '<input type="text" name="pattern_' + idx + '_regex" value="" placeholder="Regex" class="px-3 py-2 text-sm font-mono rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 focus:outline-none focus:border-brand-500">' +
+    '<input type="number" name="pattern_' + idx + '_group" value="0" placeholder="Grp" class="px-3 py-2 text-sm rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 text-center focus:outline-none focus:border-brand-500">' +
+    '<button type="button" onclick="this.parentElement.remove()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-zinc-700 text-zinc-500 hover:text-red-400 hover:border-red-400 transition-colors">&times;</button>';
   list.appendChild(div);
   div.querySelector('input').focus();
 }

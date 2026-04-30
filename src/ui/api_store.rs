@@ -25,39 +25,52 @@ pub async fn api_store(State(state): State<Arc<AppState>>) -> Html<String> {
             let mut entries: Vec<_> = data.token_to_value.iter().collect();
             entries.sort_by_key(|(k, _)| k.to_string());
             for (token, value) in &entries {
-                // Parse category from token format: CATEGORY_NNN
                 let category = extract_category(token);
-                let display_value = if value.len() > 30 {
-                    format!("{}...", &value[..30])
+                let display_value = if value.len() > 40 {
+                    format!("{}...", &value[..40])
                 } else {
                     (*value).clone()
                 };
-                // T-06-06: HTML-escape all user-facing content
                 let escaped_token = escape_html(token);
                 let escaped_value = escape_html(&display_value);
                 rows.push_str(&format!(
-                    "<tr><td><code>[{}]</code></td><td>{}</td><td><code>{}</code></td></tr>",
+                    "<tr class='border-b border-zinc-800/50 hover:bg-brand-500/[0.03] transition-colors'>\
+                       <td class='py-3 px-4'><code class='text-brand-400 text-xs font-mono'>[{}]</code></td>\
+                       <td class='py-3 px-4'><span class='text-xs font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300'>{}</span></td>\
+                       <td class='py-3 px-4'><code class='text-xs font-mono text-zinc-400'>{}</code></td>\
+                     </tr>",
                     escaped_token, category, escaped_value
                 ));
             }
             Html(format!(
-                "<div class='store-panel'>\
-                   <div class='panel-header'>\
-                     <span>{} tokens stored</span>\
-                     <button hx-get='/api/store' hx-target='#store-content' class='btn-secondary'>Refresh</button>\
+                "<div>\
+                   <div class='flex items-center justify-between mb-4'>\
+                     <span class='text-sm text-zinc-400'>{} tokens stored</span>\
+                     <button hx-get='/api/store' hx-target='#store-content' \
+                             class='px-3 py-1.5 text-xs font-medium rounded-lg border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors'>Refresh</button>\
                    </div>\
-                   <table class='token-table'>\
-                     <thead><tr><th>Token</th><th>Category</th><th>Value</th></tr></thead>\
-                     <tbody>{}</tbody>\
-                   </table>\
+                   <div class='rounded-2xl border border-zinc-800 overflow-hidden'>\
+                     <table class='w-full text-sm'>\
+                       <thead><tr class='border-b border-zinc-800 text-zinc-500'>\
+                         <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Token</th>\
+                         <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Category</th>\
+                         <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Value</th>\
+                       </tr></thead>\
+                       <tbody>{}</tbody>\
+                     </table>\
+                   </div>\
                  </div>",
-                entries.len(),
-                rows
+                entries.len(), rows
             ))
         }
         _ => Html(
-            "<div class='store-empty'><p>No tokens in store. Tokenize a file first.</p></div>"
-                .to_string(),
+            "<div class='text-center py-16'>\
+               <svg class='mx-auto mb-4 text-zinc-600' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5'>\
+                 <path d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'/>\
+               </svg>\
+               <p class='text-zinc-400 text-sm'>No tokens in store</p>\
+               <p class='text-zinc-600 text-xs mt-1'>Tokenize a file to see mappings here</p>\
+             </div>".to_string(),
         ),
     }
 }
@@ -68,57 +81,55 @@ pub async fn api_docs() -> Html<String> {
     let categories_html = build_categories_html();
 
     Html(format!(
-        "<div class='docs-panel'>\
-           <div class='docs-flow'>\
-             <h2>How It Works</h2>\
-             <div class='flow-chart'>\
-               <div class='flow-step'>\
-                 <div class='flow-number'>1</div>\
-                 <div class='flow-content'>\
-                   <strong>Tokenize</strong>\
-                   <p>Feed your logs through logtok to replace sensitive data with safe tokens</p>\
-                   <code>logtok tokenize app.log -o safe.log</code>\
+        "<div class='max-w-4xl'>\
+           <div class='mb-10'>\
+             <div class='flex flex-col gap-0 max-w-2xl'>\
+               <div class='flex items-start gap-4 p-5 rounded-2xl border border-zinc-800 bg-surface-800'>\
+                 <div class='w-9 h-9 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold text-sm shrink-0'>1</div>\
+                 <div>\
+                   <p class='font-semibold text-zinc-100'>Tokenize your logs</p>\
+                   <p class='text-sm text-zinc-400 mt-0.5'>Replace sensitive data with safe tokens</p>\
+                   <code class='inline-block mt-2 px-3 py-1 text-xs font-mono rounded-lg bg-surface-900 text-brand-400'>logtok tokenize app.log -o safe.log</code>\
                  </div>\
                </div>\
-               <div class='flow-arrow'>\
-                 <svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
-                   <line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/>\
-                 </svg>\
+               <div class='flex justify-center py-1 text-zinc-600 pl-4'>\
+                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/></svg>\
                </div>\
-               <div class='flow-step'>\
-                 <div class='flow-number'>2</div>\
-                 <div class='flow-content'>\
-                   <strong>Analyze with AI</strong>\
-                   <p>Send the tokenized logs to Claude, ChatGPT, or any AI for diagnosis</p>\
-                   <code>claude \"analyze errors in safe.log\"</code>\
+               <div class='flex items-start gap-4 p-5 rounded-2xl border border-zinc-800 bg-surface-800'>\
+                 <div class='w-9 h-9 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold text-sm shrink-0'>2</div>\
+                 <div>\
+                   <p class='font-semibold text-zinc-100'>Send to any AI</p>\
+                   <p class='text-sm text-zinc-400 mt-0.5'>Claude, ChatGPT, or any LLM can analyze without seeing secrets</p>\
+                   <code class='inline-block mt-2 px-3 py-1 text-xs font-mono rounded-lg bg-surface-900 text-brand-400'>claude &quot;diagnose errors in safe.log&quot;</code>\
                  </div>\
                </div>\
-               <div class='flow-arrow'>\
-                 <svg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
-                   <line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/>\
-                 </svg>\
+               <div class='flex justify-center py-1 text-zinc-600 pl-4'>\
+                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/></svg>\
                </div>\
-               <div class='flow-step'>\
-                 <div class='flow-number'>3</div>\
-                 <div class='flow-content'>\
-                   <strong>Detokenize</strong>\
-                   <p>Paste the AI response back to restore real values for a full readable report</p>\
-                   <code>logtok detokenize -f ai-response.md</code>\
+               <div class='flex items-start gap-4 p-5 rounded-2xl border border-zinc-800 bg-surface-800'>\
+                 <div class='w-9 h-9 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold text-sm shrink-0'>3</div>\
+                 <div>\
+                   <p class='font-semibold text-zinc-100'>Detokenize the response</p>\
+                   <p class='text-sm text-zinc-400 mt-0.5'>Restore real values for a full, readable diagnosis report</p>\
+                   <code class='inline-block mt-2 px-3 py-1 text-xs font-mono rounded-lg bg-surface-900 text-brand-400'>logtok detokenize -f ai-response.md</code>\
                  </div>\
                </div>\
              </div>\
            </div>\
-           <div class='docs-section'>\
-             <h2>CLI Reference</h2>\
-             <p class='section-desc'>All available commands and their options</p>\
+           <div class='mb-10'>\
+             <h2 class='text-xl font-bold text-zinc-100 mb-1'>CLI Reference</h2>\
+             <p class='text-sm text-zinc-400 mb-5'>All available commands and options</p>\
              {}\
            </div>\
-           <div class='docs-section'>\
-             <h2>Token Categories</h2>\
-             <p class='section-desc'>19 built-in categories of sensitive data that logtok detects</p>\
-             <div class='categories-table-wrap'>\
-               <table class='token-table'>\
-                 <thead><tr><th>Prefix</th><th>Detects</th></tr></thead>\
+           <div class='mb-10'>\
+             <h2 class='text-xl font-bold text-zinc-100 mb-1'>Token Categories</h2>\
+             <p class='text-sm text-zinc-400 mb-5'>19 built-in categories of sensitive data</p>\
+             <div class='rounded-2xl border border-zinc-800 overflow-hidden'>\
+               <table class='w-full text-sm'>\
+                 <thead><tr class='border-b border-zinc-800 text-zinc-500'>\
+                   <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Prefix</th>\
+                   <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Detects</th>\
+                 </tr></thead>\
                  <tbody>{}</tbody>\
                </table>\
              </div>\
@@ -135,21 +146,25 @@ fn build_commands_html() -> String {
 
     for cmd in &commands {
         html.push_str(&format!(
-            "<div class='command-block'>\
-               <h3><code>logtok {}</code></h3>\
-               <p>{}</p>",
+            "<div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 mb-3'>\
+               <h3 class='font-semibold text-zinc-100 mb-1'><code class='text-brand-400 font-mono'>logtok {}</code></h3>\
+               <p class='text-sm text-zinc-400'>{}</p>",
             escape_html(&cmd.name),
             escape_html(&cmd.about)
         ));
 
         if let Some(long) = &cmd.long_about {
-            html.push_str(&format!("<p class='long-about'>{}</p>", escape_html(long)));
+            html.push_str(&format!("<p class='text-xs text-zinc-500 mt-1'>{}</p>", escape_html(long)));
         }
 
         if !cmd.args.is_empty() {
             html.push_str(
-                "<table class='args-table'>\
-                   <thead><tr><th>Flag</th><th>Description</th><th>Default</th></tr></thead>\
+                "<table class='w-full text-sm mt-3'>\
+                   <thead><tr class='border-b border-zinc-800 text-zinc-500'>\
+                     <th class='text-left py-2 text-xs font-semibold uppercase tracking-wider'>Flag</th>\
+                     <th class='text-left py-2 text-xs font-semibold uppercase tracking-wider'>Description</th>\
+                     <th class='text-left py-2 text-xs font-semibold uppercase tracking-wider'>Default</th>\
+                   </tr></thead>\
                    <tbody>",
             );
             for arg in &cmd.args {
@@ -165,7 +180,11 @@ fn build_commands_html() -> String {
                     .map(|d| escape_html(d))
                     .unwrap_or_else(|| "-".to_string());
                 html.push_str(&format!(
-                    "<tr><td><code>{}</code></td><td>{}</td><td>{}</td></tr>",
+                    "<tr class='border-b border-zinc-800/50'>\
+                       <td class='py-2 pr-4'><code class='text-xs font-mono text-brand-400'>{}</code></td>\
+                       <td class='py-2 pr-4 text-zinc-400 text-xs'>{}</td>\
+                       <td class='py-2 text-zinc-500 text-xs font-mono'>{}</td>\
+                     </tr>",
                     flag,
                     escape_html(&arg.help),
                     default
@@ -176,7 +195,7 @@ fn build_commands_html() -> String {
 
         if let Some(after) = &cmd.after_long_help {
             html.push_str(&format!(
-                "<div class='after-help'>{}</div>",
+                "<div class='mt-3 p-3 rounded-lg bg-surface-900 text-xs font-mono text-zinc-500 whitespace-pre-wrap'>{}</div>",
                 escape_html(after)
             ));
         }
@@ -193,7 +212,10 @@ fn build_categories_html() -> String {
     let mut html = String::new();
     for cat in &categories {
         html.push_str(&format!(
-            "<tr><td><code>{}</code></td><td>{}</td></tr>",
+            "<tr class='border-b border-zinc-800/50 hover:bg-brand-500/[0.03] transition-colors'>\
+               <td class='py-2.5 px-4'><code class='text-xs font-mono font-medium text-brand-400'>{}</code></td>\
+               <td class='py-2.5 px-4 text-sm text-zinc-400'>{}</td>\
+             </tr>",
             escape_html(&cat.prefix),
             escape_html(&cat.description)
         ));

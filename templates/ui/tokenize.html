@@ -1,13 +1,20 @@
-<div id="tokenize-panel" class="panel">
+<div>
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold tracking-tight" :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Tokenize</h1>
+    <p class="mt-1 text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">Replace sensitive data in your logs with safe tokens</p>
+  </div>
+
   <form hx-post="/api/tokenize"
         hx-target="#tokenize-result"
         hx-encoding="multipart/form-data"
         hx-indicator="#tokenize-spinner"
         x-data="{ dragging: false, fileName: '' }">
 
-    <!-- Unified input: paste text OR drop/pick a file -->
-    <div class="input-zone"
-         :class="{ 'zone-active': dragging }"
+    <div class="rounded-2xl border overflow-hidden transition-colors"
+         :class="[
+           dragging ? 'border-brand-500 ring-2 ring-brand-500/20' : '',
+           theme === 'light' ? 'border-zinc-200 bg-white' : 'border-zinc-800 bg-surface-800'
+         ]"
          @dragover.prevent="dragging = true"
          @dragenter.prevent="dragging = true"
          @dragleave.prevent="dragging = false"
@@ -22,38 +29,35 @@
            }
          ">
 
-      <textarea id="tokenize-content" name="content" rows="10" class="input-textarea"
+      <textarea name="content" rows="12"
+                class="w-full border-0 bg-transparent px-5 py-4 text-[15px] font-mono leading-relaxed placeholder:text-zinc-500 focus:outline-none focus:ring-0 resize-y"
+                :class="theme === 'light' ? 'text-zinc-800' : 'text-zinc-200'"
                 placeholder="Paste your log content here, or drag & drop a file..."></textarea>
 
-      <div class="input-zone-footer">
-        <div class="file-controls">
-          <label class="btn-file">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="17 8 12 3 7 8"/>
-              <line x1="12" y1="3" x2="12" y2="15"/>
-            </svg>
-            <span>Choose file</span>
-            <input type="file" name="file" class="file-input-hidden"
-                   @change="
-                     if ($el.files.length > 0) {
-                       fileName = $el.files[0].name;
-                     }
-                   ">
+      <div class="flex items-center justify-between px-5 py-3 border-t"
+           :class="theme === 'light' ? 'border-zinc-100 bg-zinc-50' : 'border-zinc-800/50 bg-surface-900/50'">
+        <div class="flex items-center gap-3">
+          <label class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border cursor-pointer transition-colors"
+                 :class="theme === 'light' ? 'border-zinc-200 text-zinc-500 hover:border-zinc-300 hover:text-zinc-700' : 'border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-300'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Upload
+            <input type="file" name="file" class="sr-only" @change="if($el.files.length>0){fileName=$el.files[0].name}">
           </label>
-          <span x-show="fileName" class="file-name" x-text="fileName"></span>
+          <span x-show="fileName" class="text-xs font-mono text-brand-400" x-text="fileName" x-transition></span>
         </div>
-        <button type="submit" class="btn-action">Tokenize</button>
+        <button type="submit"
+                class="px-6 py-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
+          Tokenize
+        </button>
       </div>
     </div>
   </form>
 
-  <!-- Loading indicator -->
-  <div id="tokenize-spinner" class="htmx-indicator loading-bar">
-    <div class="spinner"></div>
-    <span>Processing...</span>
+  <div id="tokenize-spinner" class="htmx-indicator flex items-center gap-2 mt-4 text-sm text-zinc-400">
+    <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+    Processing...
   </div>
 
-  <!-- Result area -->
-  <div id="tokenize-result" class="result-area"></div>
+  <div id="tokenize-result" class="mt-4"></div>
 </div>

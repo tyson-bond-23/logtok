@@ -84,12 +84,13 @@ pub async fn api_tokenize(
                 }
             }
             let html = format!(
-                "<div class='result-success'>\
-                   <div class='result-stats'>{}</div>\
-                   <div class='result-actions'>\
-                     <button onclick='navigator.clipboard.writeText(this.closest(\".result-success\").querySelector(\"pre\").textContent)' class='btn-copy'>Copy</button>\
+                "<div class='rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 mt-4'>\
+                   <div class='flex items-center justify-between mb-3'>\
+                     <span class='text-xs font-medium text-emerald-400'>{}</span>\
+                     <button onclick='navigator.clipboard.writeText(this.closest(\"div\").querySelector(\"pre\").textContent);this.textContent=\"Copied!\";setTimeout(()=>this.textContent=\"Copy\",2000)' \
+                             class='px-3 py-1 text-xs font-medium rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors'>Copy</button>\
                    </div>\
-                   <pre class='result-output'>{}</pre>\
+                   <pre class='text-sm font-mono leading-relaxed text-zinc-200 bg-zinc-900/60 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap break-words'>{}</pre>\
                  </div>",
                 html_escape(&stats),
                 html_escape(&output)
@@ -98,14 +99,14 @@ pub async fn api_tokenize(
         }
         Ok(Err(e)) => {
             let html = format!(
-                "<div class='result-error'><p>{}</p></div>",
+                "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>{}</div>",
                 html_escape(&e)
             );
             (headers, Html(html)).into_response()
         }
         Err(e) => {
             let html = format!(
-                "<div class='result-error'><p>Processing failed: {}</p></div>",
+                "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>Processing failed: {}</div>",
                 html_escape(&e.to_string())
             );
             (headers, Html(html)).into_response()
@@ -259,23 +260,24 @@ pub async fn api_detokenize(
 
     match result {
         Ok(Ok(dr)) => Html(format!(
-            "<div class='result-success'>\
-               <div class='result-stats'>{} tokens replaced, {} unresolved</div>\
-               <div class='result-actions'>\
-                 <button onclick='navigator.clipboard.writeText(this.closest(\".result-success\").querySelector(\"pre\").textContent)' class='btn-copy'>Copy</button>\
+            "<div class='rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 mt-4'>\
+               <div class='flex items-center justify-between mb-3'>\
+                 <span class='text-xs font-medium text-emerald-400'>{} tokens replaced, {} unresolved</span>\
+                 <button onclick='navigator.clipboard.writeText(this.closest(\"div\").querySelector(\"pre\").textContent);this.textContent=\"Copied!\";setTimeout(()=>this.textContent=\"Copy\",2000)' \
+                         class='px-3 py-1 text-xs font-medium rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors'>Copy</button>\
                </div>\
-               <pre class='result-output'>{}</pre>\
+               <pre class='text-sm font-mono leading-relaxed text-zinc-200 bg-zinc-900/60 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap break-words'>{}</pre>\
              </div>",
             dr.replaced_count,
             dr.unresolved_count,
             html_escape(&dr.text)
         )),
         Ok(Err(e)) => Html(format!(
-            "<div class='result-error'><p>{}</p></div>",
+            "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>{}</div>",
             html_escape(&e)
         )),
         Err(e) => Html(format!(
-            "<div class='result-error'><p>Processing failed: {}</p></div>",
+            "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>Processing failed: {}</div>",
             html_escape(&e.to_string())
         )),
     }

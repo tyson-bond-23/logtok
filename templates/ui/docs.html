@@ -1,9 +1,16 @@
-<div class="tab-panel">
-  <h2>Documentation</h2>
+<div>
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold tracking-tight" :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Documentation</h1>
+    <p class="mt-1 text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">How logtok works, CLI reference, and token categories</p>
+  </div>
+
   <div id="docs-content"
        hx-get="/api/docs"
        hx-trigger="load"
        hx-swap="innerHTML">
-    <div class="htmx-indicator">Loading documentation...</div>
+    <div class="flex items-center gap-2 text-sm text-zinc-400">
+      <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+      Loading documentation...
+    </div>
   </div>
 </div>

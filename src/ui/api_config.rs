@@ -56,12 +56,14 @@ pub async fn api_config_get() -> Html<String> {
         let checked = if disabled { "" } else { "checked" };
         let active_class = if disabled { "" } else { " cat-active" };
         category_toggles.push_str(&format!(
-            "<label class='cat-card{}'>\
-               <input type='checkbox' name='enabled_{}' {} value='1' class='cat-checkbox'>\
-               <span class='cat-prefix'>{}</span>\
-               <span class='cat-desc'>{}</span>\
+            "<label class='flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all {}'>\
+               <input type='checkbox' name='enabled_{}' {} value='1' class='w-4 h-4 accent-[#6366f1] shrink-0'>\
+               <div>\
+                 <span class='block text-xs font-mono font-semibold text-brand-400'>{}</span>\
+                 <span class='block text-[11px] text-zinc-500 leading-tight mt-0.5'>{}</span>\
+               </div>\
              </label>",
-            active_class,
+            if disabled { "border-zinc-800 bg-surface-800 opacity-60" } else { "border-zinc-700 bg-surface-800" },
             cat.to_lowercase(),
             checked,
             cat,
@@ -73,11 +75,11 @@ pub async fn api_config_get() -> Html<String> {
     let mut patterns_html = String::new();
     for (i, p) in cfg.detection.custom_patterns.iter().enumerate() {
         patterns_html.push_str(&format!(
-            "<div class='pattern-row'>\
-               <input type='text' name='pattern_{}_name' value='{}' placeholder='Pattern name'>\
-               <input type='text' name='pattern_{}_regex' value='{}' placeholder='Regex pattern'>\
-               <input type='number' name='pattern_{}_group' value='{}' placeholder='Group'>\
-               <button type='button' class='btn-remove-pattern' onclick='this.parentElement.remove()'>&times;</button>\
+            "<div class='pattern-row grid grid-cols-[1fr_2fr_70px_32px] gap-2 mb-2 items-center'>\
+               <input type='text' name='pattern_{}_name' value='{}' placeholder='Name' class='px-3 py-2 text-sm rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 focus:outline-none focus:border-brand-500'>\
+               <input type='text' name='pattern_{}_regex' value='{}' placeholder='Regex' class='px-3 py-2 text-sm font-mono rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 focus:outline-none focus:border-brand-500'>\
+               <input type='number' name='pattern_{}_group' value='{}' placeholder='Grp' class='px-3 py-2 text-sm rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 text-center focus:outline-none focus:border-brand-500'>\
+               <button type='button' onclick='this.parentElement.remove()' class='w-8 h-8 flex items-center justify-center rounded-lg border border-zinc-700 text-zinc-500 hover:text-red-400 hover:border-red-400 transition-colors'>&times;</button>\
              </div>",
             i,
             escape_html(&p.name),
@@ -91,48 +93,50 @@ pub async fn api_config_get() -> Html<String> {
     let escaped_toml = escape_html(&raw_toml);
 
     Html(format!(
-        "<div class='config-panel' x-data=\"{{ configMode: 'form', patternCount: {} }}\">\
-           <div class='config-view-toggle'>\
+        "<div class='max-w-3xl' x-data=\"{{ configMode: 'form' }}\">\
+           <div class='inline-flex rounded-xl border border-zinc-800 p-1 mb-8 bg-surface-800'>\
              <button type='button' @click=\"configMode = 'form'\" \
-                     :class=\"{{ 'toggle-active': configMode === 'form' }}\" class='toggle-btn'>Form View</button>\
+                     class='px-4 py-1.5 text-sm font-medium rounded-lg transition-all' \
+                     :class=\"configMode === 'form' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-zinc-200'\">Form View</button>\
              <button type='button' @click=\"configMode = 'toml'\" \
-                     :class=\"{{ 'toggle-active': configMode === 'toml' }}\" class='toggle-btn'>Raw TOML</button>\
+                     class='px-4 py-1.5 text-sm font-medium rounded-lg transition-all' \
+                     :class=\"configMode === 'toml' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-zinc-200'\">Raw TOML</button>\
            </div>\
            <form hx-put='/api/config' hx-target='#config-result' hx-encoding='multipart/form-data'>\
              <div x-show=\"configMode === 'form'\">\
-               <div class='config-section'>\
-                 <h3>Detection Categories</h3>\
-                 <p class='section-desc'>Toggle which types of sensitive data to detect</p>\
-                 <div class='category-cards'>{}</div>\
+               <div class='mb-8'>\
+                 <h3 class='text-lg font-semibold text-zinc-100 mb-1'>Detection Categories</h3>\
+                 <p class='text-sm text-zinc-400 mb-4'>Toggle which types of sensitive data to detect</p>\
+                 <div class='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2'>{}</div>\
                </div>\
-               <div class='config-section'>\
-                 <h3>Custom Patterns</h3>\
-                 <p class='section-desc'>Define your own regex patterns for domain-specific data</p>\
-                 <div class='patterns-list' id='patterns-list'>{}</div>\
-                 <button type='button' onclick='addPatternRow()' class='btn-add-pattern'>\
-                   <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
-                     <line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/>\
-                   </svg>\
+               <div class='mb-8'>\
+                 <h3 class='text-lg font-semibold text-zinc-100 mb-1'>Custom Patterns</h3>\
+                 <p class='text-sm text-zinc-400 mb-4'>Define your own regex patterns for domain-specific data</p>\
+                 <div id='patterns-list' class='mb-3'>{}</div>\
+                 <button type='button' onclick='addPatternRow()' \
+                         class='inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-dashed border-zinc-700 text-zinc-400 hover:text-brand-400 hover:border-brand-500 transition-colors'>\
+                   <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='5' x2='12' y2='19'/><line x1='5' y1='12' x2='19' y2='12'/></svg>\
                    Add Pattern\
                  </button>\
                </div>\
-               <div class='config-section'>\
-                 <h3>Store Settings</h3>\
-                 <div class='ttl-row'>\
-                   <label for='ttl-input'>Token TTL</label>\
-                   <div class='ttl-input-group'>\
-                     <input type='number' id='ttl-input' name='ttl_days' value='{}' min='1' max='365' class='ttl-number'>\
-                     <span class='ttl-unit'>days</span>\
-                   </div>\
+               <div class='mb-8'>\
+                 <h3 class='text-lg font-semibold text-zinc-100 mb-1'>Store Settings</h3>\
+                 <div class='flex items-center gap-3 mt-3'>\
+                   <label class='text-sm font-medium text-zinc-300'>Token TTL</label>\
+                   <input type='number' name='ttl_days' value='{}' min='1' max='365' \
+                          class='w-20 px-3 py-2 text-sm text-center rounded-lg border border-zinc-700 bg-surface-800 text-zinc-200 focus:outline-none focus:border-brand-500'>\
+                   <span class='text-sm text-zinc-500'>days</span>\
                  </div>\
                </div>\
              </div>\
              <div x-show=\"configMode === 'toml'\">\
-               <textarea name='raw_toml' rows='20' class='toml-editor'>{}</textarea>\
+               <textarea name='raw_toml' rows='20' \
+                         class='w-full px-4 py-3 text-sm font-mono rounded-2xl border border-zinc-800 bg-surface-800 text-zinc-200 focus:outline-none focus:border-brand-500 resize-y'>{}</textarea>\
              </div>\
-             <div class='config-save-bar'>\
-               <button type='submit' class='btn-save'>\
-                 <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
+             <div class='mt-6 pt-6 border-t border-zinc-800'>\
+               <button type='submit' \
+                       class='inline-flex items-center gap-2 px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-surface-900'>\
+                 <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
                    <path d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/>\
                    <polyline points='17 21 17 13 7 13 7 21'/><polyline points='7 3 7 8 15 8'/>\
                  </svg>\
@@ -140,9 +144,8 @@ pub async fn api_config_get() -> Html<String> {
                </button>\
              </div>\
            </form>\
-           <div id='config-result'></div>\
+           <div id='config-result' class='mt-4'></div>\
          </div>",
-        cfg.detection.custom_patterns.len(),
         category_toggles, patterns_html, cfg.store.ttl_days, escaped_toml
     ))
 }
@@ -175,7 +178,7 @@ pub async fn api_config_put(
             Ok(_) => raw_toml_trimmed.to_string(),
             Err(e) => {
                 return Html(format!(
-                    "<div class='config-error'><p>Invalid TOML: {}</p></div>",
+                    "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>Invalid TOML: {}</div>",
                     escape_html(&e.to_string())
                 ));
             }
@@ -236,7 +239,7 @@ pub async fn api_config_put(
             Ok(s) => s,
             Err(e) => {
                 return Html(format!(
-                    "<div class='config-error'><p>Serialization error: {}</p></div>",
+                    "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>Serialization error: {}</div>",
                     escape_html(&e.to_string())
                 ));
             }
@@ -251,15 +254,15 @@ pub async fn api_config_put(
 
     match write_result {
         Ok(Ok(())) => Html(
-            "<div class='config-success'><p>Configuration saved to .logtok.toml</p></div>"
+            "<div class='mt-4 p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm'>Configuration saved to .logtok.toml</div>"
                 .to_string(),
         ),
         Ok(Err(e)) => Html(format!(
-            "<div class='config-error'><p>Write failed: {}</p></div>",
+            "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>Write failed: {}</div>",
             escape_html(&e.to_string())
         )),
         Err(e) => Html(format!(
-            "<div class='config-error'><p>Internal error: {}</p></div>",
+            "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>Internal error: {}</div>",
             escape_html(&e.to_string())
         )),
     }
