@@ -77,9 +77,9 @@ Plans:
 
 Plans:
 - [x] 06-01-PLAN.md — Server foundation: deps, ui module tree, axum server, WebSocket heartbeat, rust-embed assets, CLI integration
-- [ ] 06-02-PLAN.md — Dashboard shell: HTMX + Alpine.js, CSS themes (dark/light/RTL), base template, tab navigation, i18n
-- [ ] 06-03-PLAN.md — Tokenize + Detokenize panels: API handlers with core engine integration, HTMX templates with 4 input methods
-- [ ] 06-04-PLAN.md — Store browser + Docs + Config: API handlers for store/docs/config, HTMX templates with form/TOML editor
+- [x] 06-02-PLAN.md — Dashboard shell: HTMX + Alpine.js, CSS themes (dark/light/RTL), base template, tab navigation, i18n
+- [x] 06-03-PLAN.md — Tokenize + Detokenize panels: API handlers with core engine integration, HTMX templates with 4 input methods
+- [x] 06-04-PLAN.md — Store browser + Docs + Config: API handlers for store/docs/config, HTMX templates with form/TOML editor
 - [ ] 06-05-PLAN.md — Integration tests + human verification checkpoint
 
 ### Phase 7: Tokenization Report
@@ -105,5 +105,5 @@ Phases execute in numeric order: 4 -> 5 -> 6 -> 7
 | 3. Diagnosis & Delivery | v1.0 | 3/3 | Complete | 2026-04-16 |
 | 4. Colored CLI Help | v2.0 | 1/1 | Complete | 2026-04-29 |
 | 5. HTML Documentation | v2.0 | 2/2 | Complete | 2026-04-29 |
-| 6. Local UI Interface | v2.0 | 0/5 | Planning complete | - |
+| 6. Local UI Interface | v2.0 | 4/5 | Executing | - |
 | 7. Tokenization Report | v2.0 | 0/? | Not started | - |
