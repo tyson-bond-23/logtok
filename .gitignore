@@ -1,0 +1,10 @@
+# Build artifacts
+/target/
+
+# Node.js (used for Tailwind CSS compilation only)
+/node_modules/
+/package.json
+/package-lock.json
+
+# Editor/OS files
+$null
