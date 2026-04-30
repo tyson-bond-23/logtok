@@ -233,12 +233,12 @@ pub async fn api_detokenize(
         match String::from_utf8(bytes) {
             Ok(s) if !s.trim().is_empty() => s,
             _ => return Html(
-                "<div class='result-error'><p>File is empty or not valid text.</p></div>".to_string(),
+                "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>File is empty or not valid text.</div>".to_string(),
             ),
         }
     } else {
         return Html(
-            "<div class='result-error'><p>No content provided. Paste tokenized text or upload a file.</p></div>"
+            "<div class='mt-4 p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm'>No content provided. Paste tokenized text or upload a file.</div>"
                 .to_string(),
         );
     };

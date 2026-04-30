@@ -3,10 +3,27 @@ use axum::response::Html;
 use crate::config::{CustomPatternToml, DetectionSection, LoktokConfig, StoreSection};
 use crate::ui::api_store::escape_html;
 
-/// All 19 detection categories.
-const CATEGORIES: [&str; 19] = [
-    "IP", "HOST", "URL", "PATH", "PORT", "EMAIL", "USER", "PHONE", "KEY", "PASS", "CONN", "JWT",
-    "PEM", "UUID", "MAC", "CC", "SSN", "DOB", "CUSTOM",
+/// All 19 detection categories with descriptions and regex patterns.
+const CATEGORIES: [(&str, &str, &str); 19] = [
+    ("PEM", "PEM certificates & keys", r"-----BEGIN [A-Z ]*PRIVATE KEY-----"),
+    ("JWT", "JSON Web Tokens", r"eyJ[...].eyJ[...].[...]"),
+    ("CONN", "Connection strings", r"(postgresql|mysql|mongodb|redis)://..."),
+    ("EMAIL", "Email addresses", r"[a-zA-Z0-9._%+-]+@[...]\.[a-zA-Z]{2,}"),
+    ("URL", "URLs & endpoints", r"https?://[^\s]+"),
+    ("KEY", "API keys & secrets", r"(api_key|token|secret)\s*[=:]\s*VALUE"),
+    ("PASS", "Passwords", r"(password|passwd|pwd)\s*[=:]\s*VALUE"),
+    ("CC", "Credit card numbers", r"4xxx-xxxx-xxxx-xxxx (Luhn validated)"),
+    ("SSN", "Social security numbers", r"\d{3}-\d{2}-\d{4}"),
+    ("ARN", "AWS ARN identifiers", r"arn:aws:[...]:ACCOUNT_ID:[...]"),
+    ("NAME", "Usernames & authors", r"(user|username|author)\s*[=:]\s*VALUE"),
+    ("UUID", "UUIDs / GUIDs", r"[0-9a-f]{8}-[...]-[0-9a-f]{12}"),
+    ("MAC", "MAC addresses", r"[0-9a-f]{2}:[...repeated 6x...]"),
+    ("PHONE", "Phone numbers", r"(+1-)?\d{3}-\d{3}-\d{4}"),
+    ("IP", "IP addresses (v4)", r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}"),
+    ("HOST", "Internal hostnames", r"host.internal|host.local|host.corp"),
+    ("DNS", "Domain names", r"sub.domain.tld"),
+    ("OS", "OS version strings", r"Linux 5.15|Windows NT 10.0|Darwin 23"),
+    ("PATH", "File system paths", r"/var/log/app/error.log"),
 ];
 
 /// GET /api/config -- returns HTML fragment with config form (category toggles, patterns, TTL)
@@ -24,50 +41,43 @@ pub async fn api_config_get() -> Html<String> {
     .await
     .unwrap_or((LoktokConfig::default(), String::new()));
 
-    // Build category toggle cards
+    // Build category toggle cards with regex info popup
     let mut category_toggles = String::new();
-    let cat_descriptions: [(&str, &str); 19] = [
-        ("IP", "IP addresses"),
-        ("HOST", "Hostnames"),
-        ("URL", "URLs & endpoints"),
-        ("PATH", "File paths"),
-        ("PORT", "Port numbers"),
-        ("EMAIL", "Email addresses"),
-        ("USER", "Usernames"),
-        ("PHONE", "Phone numbers"),
-        ("KEY", "API keys"),
-        ("PASS", "Passwords"),
-        ("CONN", "Connection strings"),
-        ("JWT", "JSON Web Tokens"),
-        ("PEM", "PEM certificates"),
-        ("UUID", "UUIDs/GUIDs"),
-        ("MAC", "MAC addresses"),
-        ("CC", "Credit cards"),
-        ("SSN", "Social security #"),
-        ("DOB", "Dates of birth"),
-        ("CUSTOM", "Custom patterns"),
-    ];
-    for (cat, desc) in &cat_descriptions {
+    for (cat, desc, regex_example) in &CATEGORIES {
         let disabled = cfg
             .detection
             .disabled
             .iter()
             .any(|d| d.eq_ignore_ascii_case(cat));
         let checked = if disabled { "" } else { "checked" };
-        let active_class = if disabled { "" } else { " cat-active" };
+        let escaped_regex = escape_html(regex_example);
         category_toggles.push_str(&format!(
-            "<label class='flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all {}'>\
-               <input type='checkbox' name='enabled_{}' {} value='1' class='w-4 h-4 accent-[#6366f1] shrink-0'>\
-               <div>\
-                 <span class='block text-xs font-mono font-semibold text-brand-400'>{}</span>\
-                 <span class='block text-[11px] text-zinc-500 leading-tight mt-0.5'>{}</span>\
+            "<div class='relative group rounded-xl border p-4 transition-all {}' x-data='{{ showInfo: false }}'>\
+               <div class='flex items-start justify-between gap-2'>\
+                 <label class='flex items-center gap-3 cursor-pointer flex-1 min-w-0'>\
+                   <input type='checkbox' name='enabled_{}' {} value='1' class='w-4 h-4 accent-brand-500 shrink-0 mt-0.5'>\
+                   <div class='min-w-0'>\
+                     <span class='block text-sm font-mono font-bold text-brand-400'>{}</span>\
+                     <span class='block text-xs text-zinc-500 mt-0.5'>{}</span>\
+                   </div>\
+                 </label>\
+                 <button type='button' @click='showInfo = !showInfo' \
+                         class='w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 transition-colors' \
+                         :class=\"showInfo ? 'bg-brand-500 text-white' : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 hover:text-zinc-200'\">\
+                   ?</button>\
                </div>\
-             </label>",
-            if disabled { "border-zinc-800 bg-surface-800 opacity-60" } else { "border-zinc-700 bg-surface-800" },
+               <div x-show='showInfo' x-transition x-cloak \
+                    class='mt-3 pt-3 border-t border-zinc-700/50'>\
+                 <p class='text-[10px] font-medium uppercase tracking-wider text-zinc-500 mb-1'>Pattern</p>\
+                 <code class='block text-xs font-mono text-emerald-400 bg-zinc-900/60 rounded-lg px-3 py-2 break-all'>{}</code>\
+               </div>\
+             </div>",
+            if disabled { "border-zinc-800 bg-surface-800/50 opacity-60" } else { "border-zinc-700 bg-surface-800 hover:border-zinc-600" },
             cat.to_lowercase(),
             checked,
             cat,
-            desc
+            desc,
+            escaped_regex
         ));
     }
 
@@ -105,12 +115,12 @@ pub async fn api_config_get() -> Html<String> {
            <form hx-put='/api/config' hx-target='#config-result' hx-encoding='multipart/form-data'>\
              <div x-show=\"configMode === 'form'\">\
                <div class='mb-8'>\
-                 <h3 class='text-lg font-semibold text-zinc-100 mb-1'>Detection Categories</h3>\
-                 <p class='text-sm text-zinc-400 mb-4'>Toggle which types of sensitive data to detect</p>\
-                 <div class='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2'>{}</div>\
+                 <h3 class='text-lg font-semibold cfg-heading mb-1'>Detection Categories</h3>\
+                 <p class='text-sm text-zinc-500 mb-4'>Toggle which types of sensitive data to detect. Click <span class='inline-flex items-center justify-center w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 text-[9px] font-bold'>?</span> to see the regex pattern.</p>\
+                 <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'>{}</div>\
                </div>\
                <div class='mb-8'>\
-                 <h3 class='text-lg font-semibold text-zinc-100 mb-1'>Custom Patterns</h3>\
+                 <h3 class='text-lg font-semibold cfg-heading mb-1'>Custom Patterns</h3>\
                  <p class='text-sm text-zinc-400 mb-4'>Define your own regex patterns for domain-specific data</p>\
                  <div id='patterns-list' class='mb-3'>{}</div>\
                  <button type='button' onclick='addPatternRow()' \
@@ -120,7 +130,7 @@ pub async fn api_config_get() -> Html<String> {
                  </button>\
                </div>\
                <div class='mb-8'>\
-                 <h3 class='text-lg font-semibold text-zinc-100 mb-1'>Store Settings</h3>\
+                 <h3 class='text-lg font-semibold cfg-heading mb-1'>Store Settings</h3>\
                  <div class='flex items-center gap-3 mt-3'>\
                    <label class='text-sm font-medium text-zinc-300'>Token TTL</label>\
                    <input type='number' name='ttl_days' value='{}' min='1' max='365' \
@@ -186,7 +196,7 @@ pub async fn api_config_put(
     } else {
         // Form mode: build config from form fields
         let mut disabled: Vec<String> = Vec::new();
-        for cat in &CATEGORIES {
+        for (cat, _, _) in &CATEGORIES {
             let key = format!("enabled_{}", cat.to_lowercase());
             if !fields.contains_key(&key) {
                 // Unchecked checkbox = category disabled

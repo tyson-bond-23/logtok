@@ -81,59 +81,76 @@ pub async fn api_docs() -> Html<String> {
     let categories_html = build_categories_html();
 
     Html(format!(
-        "<div class='max-w-4xl'>\
-           <div class='mb-10'>\
-             <div class='flex flex-col gap-0 max-w-2xl'>\
-               <div class='flex items-start gap-4 p-5 rounded-2xl border border-zinc-800 bg-surface-800'>\
-                 <div class='w-9 h-9 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold text-sm shrink-0'>1</div>\
-                 <div>\
-                   <p class='font-semibold text-zinc-100'>Tokenize your logs</p>\
-                   <p class='text-sm text-zinc-400 mt-0.5'>Replace sensitive data with safe tokens</p>\
-                   <code class='inline-block mt-2 px-3 py-1 text-xs font-mono rounded-lg bg-surface-900 text-brand-400'>logtok tokenize app.log -o safe.log</code>\
-                 </div>\
+        "<div class='max-w-4xl space-y-12'>\
+           <section>\
+             <div class='flex items-center gap-3 mb-6'>\
+               <div class='w-10 h-10 flex items-center justify-center rounded-xl bg-brand-500/10 text-brand-400'>\
+                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>\
                </div>\
-               <div class='flex justify-center py-1 text-zinc-600 pl-4'>\
-                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/></svg>\
-               </div>\
-               <div class='flex items-start gap-4 p-5 rounded-2xl border border-zinc-800 bg-surface-800'>\
-                 <div class='w-9 h-9 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold text-sm shrink-0'>2</div>\
-                 <div>\
-                   <p class='font-semibold text-zinc-100'>Send to any AI</p>\
-                   <p class='text-sm text-zinc-400 mt-0.5'>Claude, ChatGPT, or any LLM can analyze without seeing secrets</p>\
-                   <code class='inline-block mt-2 px-3 py-1 text-xs font-mono rounded-lg bg-surface-900 text-brand-400'>claude &quot;diagnose errors in safe.log&quot;</code>\
-                 </div>\
-               </div>\
-               <div class='flex justify-center py-1 text-zinc-600 pl-4'>\
-                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><line x1='12' y1='5' x2='12' y2='19'/><polyline points='19 12 12 19 5 12'/></svg>\
-               </div>\
-               <div class='flex items-start gap-4 p-5 rounded-2xl border border-zinc-800 bg-surface-800'>\
-                 <div class='w-9 h-9 flex items-center justify-center rounded-full bg-brand-500 text-white font-bold text-sm shrink-0'>3</div>\
-                 <div>\
-                   <p class='font-semibold text-zinc-100'>Detokenize the response</p>\
-                   <p class='text-sm text-zinc-400 mt-0.5'>Restore real values for a full, readable diagnosis report</p>\
-                   <code class='inline-block mt-2 px-3 py-1 text-xs font-mono rounded-lg bg-surface-900 text-brand-400'>logtok detokenize -f ai-response.md</code>\
-                 </div>\
+               <div>\
+                 <h2 class='text-xl font-bold docs-heading'>Quick Start</h2>\
+                 <p class='text-sm text-zinc-500'>Three steps to safe AI log diagnosis</p>\
                </div>\
              </div>\
-           </div>\
-           <div class='mb-10'>\
-             <h2 class='text-xl font-bold text-zinc-100 mb-1'>CLI Reference</h2>\
-             <p class='text-sm text-zinc-400 mb-5'>All available commands and options</p>\
-             {}\
-           </div>\
-           <div class='mb-10'>\
-             <h2 class='text-xl font-bold text-zinc-100 mb-1'>Token Categories</h2>\
-             <p class='text-sm text-zinc-400 mb-5'>19 built-in categories of sensitive data</p>\
-             <div class='rounded-2xl border border-zinc-800 overflow-hidden'>\
+             <div class='grid grid-cols-1 md:grid-cols-3 gap-4'>\
+               <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
+                 <div class='flex items-center gap-2 mb-3'>\
+                   <span class='w-7 h-7 flex items-center justify-center rounded-lg bg-brand-500 text-white text-xs font-bold'>1</span>\
+                   <h3 class='font-semibold docs-heading text-sm'>Tokenize</h3>\
+                 </div>\
+                 <p class='text-xs text-zinc-500 mb-3'>Replace sensitive data with safe tokens</p>\
+                 <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code'>logtok tokenize app.log -o safe.log</code>\
+               </div>\
+               <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
+                 <div class='flex items-center gap-2 mb-3'>\
+                   <span class='w-7 h-7 flex items-center justify-center rounded-lg bg-brand-500 text-white text-xs font-bold'>2</span>\
+                   <h3 class='font-semibold docs-heading text-sm'>Analyze</h3>\
+                 </div>\
+                 <p class='text-xs text-zinc-500 mb-3'>Send to any AI without exposing secrets</p>\
+                 <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code'>claude &quot;diagnose errors in safe.log&quot;</code>\
+               </div>\
+               <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
+                 <div class='flex items-center gap-2 mb-3'>\
+                   <span class='w-7 h-7 flex items-center justify-center rounded-lg bg-brand-500 text-white text-xs font-bold'>3</span>\
+                   <h3 class='font-semibold docs-heading text-sm'>Detokenize</h3>\
+                 </div>\
+                 <p class='text-xs text-zinc-500 mb-3'>Restore real values in the AI response</p>\
+                 <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code'>logtok detokenize -f ai-response.md</code>\
+               </div>\
+             </div>\
+           </section>\
+           <section>\
+             <div class='flex items-center gap-3 mb-6'>\
+               <div class='w-10 h-10 flex items-center justify-center rounded-xl bg-brand-500/10 text-brand-400'>\
+                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><polyline points='4 17 10 11 4 5'/><line x1='12' y1='19' x2='20' y2='19'/></svg>\
+               </div>\
+               <div>\
+                 <h2 class='text-xl font-bold docs-heading'>CLI Reference</h2>\
+                 <p class='text-sm text-zinc-500'>All available commands and options</p>\
+               </div>\
+             </div>\
+             <div class='space-y-3'>{}</div>\
+           </section>\
+           <section>\
+             <div class='flex items-center gap-3 mb-6'>\
+               <div class='w-10 h-10 flex items-center justify-center rounded-xl bg-brand-500/10 text-brand-400'>\
+                 <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'><rect x='3' y='3' width='7' height='7'/><rect x='14' y='3' width='7' height='7'/><rect x='3' y='14' width='7' height='7'/><rect x='14' y='14' width='7' height='7'/></svg>\
+               </div>\
+               <div>\
+                 <h2 class='text-xl font-bold docs-heading'>Token Categories</h2>\
+                 <p class='text-sm text-zinc-500'>19 built-in categories of sensitive data</p>\
+               </div>\
+             </div>\
+             <div class='rounded-2xl border border-zinc-800 overflow-hidden docs-table'>\
                <table class='w-full text-sm'>\
-                 <thead><tr class='border-b border-zinc-800 text-zinc-500'>\
-                   <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Prefix</th>\
-                   <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider'>Detects</th>\
+                 <thead><tr class='border-b border-zinc-700 bg-zinc-800/50'>\
+                   <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-zinc-400'>Prefix</th>\
+                   <th class='text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider text-zinc-400'>Detects</th>\
                  </tr></thead>\
                  <tbody>{}</tbody>\
                </table>\
              </div>\
-           </div>\
+           </section>\
          </div>",
         commands_html, categories_html
     ))
