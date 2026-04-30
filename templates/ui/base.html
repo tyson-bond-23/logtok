@@ -12,9 +12,9 @@
     {%- endfor %}
     };
   </script>
+  <script src="/static/app.js" defer></script>
   <script src="/static/alpine.min.js" defer></script>
   <script src="/static/htmx.min.js" defer></script>
-  <script src="/static/app.js" defer></script>
 </head>
 <body :class="'theme-' + theme">
 
@@ -87,57 +87,27 @@
 
     <!-- Tokenize Tab -->
     <div class="tab-panel" x-show="tab === 'tokenize'" x-cloak>
-      <div class="tab-panel-header">
-        <h2 x-text="t['tab.tokenize'] || 'Tokenize'">Tokenize</h2>
-        <p>Tokenize sensitive data from log files</p>
-      </div>
-      <div class="card">
-        <p class="empty-state">Tokenize panel will be loaded by Plan 03</p>
-      </div>
+      {% include "ui/tokenize.html" %}
     </div>
 
     <!-- Detokenize Tab -->
     <div class="tab-panel" x-show="tab === 'detokenize'" x-cloak>
-      <div class="tab-panel-header">
-        <h2 x-text="t['tab.detokenize'] || 'Detokenize'">Detokenize</h2>
-        <p>Restore tokenized values back to originals</p>
-      </div>
-      <div class="card">
-        <p class="empty-state">Detokenize panel will be loaded by Plan 03</p>
-      </div>
+      {% include "ui/detokenize.html" %}
     </div>
 
     <!-- Token Store Tab -->
     <div class="tab-panel" x-show="tab === 'store'" x-cloak>
-      <div class="tab-panel-header">
-        <h2 x-text="t['tab.store'] || 'Token Store'">Token Store</h2>
-        <p>Browse and manage stored token mappings</p>
-      </div>
-      <div class="card">
-        <p class="empty-state">Token Store browser will be loaded by Plan 03</p>
-      </div>
+      {% include "ui/store.html" %}
     </div>
 
     <!-- Config Tab -->
     <div class="tab-panel" x-show="tab === 'config'" x-cloak>
-      <div class="tab-panel-header">
-        <h2 x-text="t['tab.config'] || 'Config'">Config</h2>
-        <p>Configure detection rules and custom patterns</p>
-      </div>
-      <div class="card">
-        <p class="empty-state">Config editor will be loaded by Plan 04</p>
-      </div>
+      {% include "ui/config.html" %}
     </div>
 
     <!-- Docs Tab -->
     <div class="tab-panel" x-show="tab === 'docs'" x-cloak>
-      <div class="tab-panel-header">
-        <h2 x-text="t['tab.docs'] || 'Docs'">Docs</h2>
-        <p>logtok command reference and documentation</p>
-      </div>
-      <div class="card">
-        <p class="empty-state">Docs content will be loaded by Plan 04</p>
-      </div>
+      {% include "ui/docs.html" %}
     </div>
 
   </main>
