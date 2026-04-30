@@ -34,6 +34,38 @@
                 :class="theme === 'light' ? 'text-zinc-800' : 'text-zinc-200'"
                 placeholder="Paste your log content here, or drag & drop a file..."></textarea>
 
+      <!-- File path input (D-18: 4th input method for large files -- server reads directly) -->
+      <div class="flex items-center gap-2 px-5 py-3 border-t"
+           :class="theme === 'light' ? 'border-zinc-100' : 'border-zinc-800/50'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0" :class="theme === 'light' ? 'text-zinc-400' : 'text-zinc-500'"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <input type="text" name="file_path"
+               class="flex-1 bg-transparent text-sm font-mono placeholder:text-zinc-500 focus:outline-none"
+               :class="theme === 'light' ? 'text-zinc-800' : 'text-zinc-200'"
+               placeholder="Or enter file path (best for large files)..."
+               @change="if($el.value) addRecentFile($el.value)">
+      </div>
+
+      <!-- D-25/UI-14: Recent files dropdown from localStorage -->
+      <div x-show="recentFiles.length > 0" x-transition
+           class="px-5 py-2 border-t"
+           :class="theme === 'light' ? 'border-zinc-100 bg-zinc-50/50' : 'border-zinc-800/50 bg-surface-950/30'">
+        <p class="text-[11px] font-medium uppercase tracking-wider mb-1.5"
+           :class="theme === 'light' ? 'text-zinc-400' : 'text-zinc-600'"
+           x-text="t['label.recent_files'] || 'Recent files'"></p>
+        <div class="flex flex-wrap gap-1.5">
+          <template x-for="rf in recentFiles.slice(0, 5)" :key="rf">
+            <button type="button"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono rounded border transition-colors"
+                    :class="theme === 'light'
+                      ? 'border-zinc-200 text-zinc-600 hover:border-brand-300 hover:text-brand-600 bg-surface-50'
+                      : 'border-zinc-700 text-zinc-400 hover:border-brand-500/50 hover:text-brand-400 bg-surface-800'"
+                    @click="$el.closest('form').querySelector('[name=file_path]').value = rf"
+                    x-text="rf.split(/[\\/]/).pop()">
+            </button>
+          </template>
+        </div>
+      </div>
+
       <div class="flex items-center justify-between px-5 py-3 border-t"
            :class="theme === 'light' ? 'border-zinc-100 bg-zinc-50' : 'border-zinc-800/50 bg-surface-900/50'">
         <div class="flex items-center gap-3">
