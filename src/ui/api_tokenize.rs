@@ -165,11 +165,20 @@ fn tokenize_input(
     let detection_config = cfg.to_detection_config();
 
     // Create store with session key (D-19)
+    // If an old store.enc exists from a previous session, remove it so the new
+    // session key can create a fresh store. The UI generates a random key per session.
     let store_dir = std::env::current_dir()
         .map_err(|e| format!("Cannot determine CWD: {}", e))?
         .join(".loktok");
     let store = Store::with_passphrase(&store_dir, session_key.to_string())
         .map_err(|e| format!("Store error: {}", e))?;
+    // Test if we can load the existing store with this key; if not, reset it
+    if store.load().is_err() {
+        let store_file = store_dir.join("store.enc");
+        if store_file.exists() {
+            let _ = std::fs::remove_file(&store_file);
+        }
+    }
 
     // Determine input source and create input file
     let (input_path, _temp_in, source_name) = if let Some(ref fp) = file_path {
@@ -306,9 +315,17 @@ pub async fn api_detokenize(
             .join(".loktok");
         let store = Store::with_passphrase(&store_dir, session_key)
             .map_err(|e| format!("Store error: {}", e))?;
-        let data = store
-            .load()
-            .map_err(|e| format!("Cannot load token store: {}. Tokenize some content first.", e))?;
+        let data = match store.load() {
+            Ok(d) => d,
+            Err(_) => {
+                // Old store from different session — remove and return empty
+                let store_file = store_dir.join("store.enc");
+                if store_file.exists() {
+                    let _ = std::fs::remove_file(&store_file);
+                }
+                return Err("No tokens in current session. Tokenize some content first.".to_string());
+            }
+        };
         let result = crate::detokenizer::detokenize(&text, &data.token_to_value);
         Ok::<_, String>(result)
     })
