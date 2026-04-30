@@ -10,3 +10,4 @@ pub mod json_processor;
 pub mod processor;
 pub mod store;
 pub mod tokenizer;
+pub mod ui;

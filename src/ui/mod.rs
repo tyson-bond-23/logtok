@@ -4,7 +4,7 @@ mod api_tokenize;
 mod assets;
 mod handlers;
 mod i18n;
-mod routes;
+pub mod routes;
 mod ws;
 
 use anyhow::Result;
