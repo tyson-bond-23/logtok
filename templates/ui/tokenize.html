@@ -1,1 +1,117 @@
-<div id="tokenize-panel"><p>Tokenize panel placeholder</p></div>
+<div id="tokenize-panel" class="panel">
+  <form hx-post="/api/tokenize"
+        hx-target="#tokenize-result"
+        hx-encoding="multipart/form-data"
+        hx-indicator="#tokenize-spinner"
+        x-data="{ inputMode: 'paste' }">
+
+    <!-- Input mode selector tabs -->
+    <div class="input-mode-tabs">
+      <button type="button" class="mode-tab" :class="{ active: inputMode === 'paste' }"
+              @click="inputMode = 'paste'" data-i18n="tokenize.paste">
+        Paste Text
+      </button>
+      <button type="button" class="mode-tab" :class="{ active: inputMode === 'filepath' }"
+              @click="inputMode = 'filepath'" data-i18n="tokenize.filepath">
+        File Path
+      </button>
+      <button type="button" class="mode-tab" :class="{ active: inputMode === 'upload' }"
+              @click="inputMode = 'upload'" data-i18n="tokenize.upload">
+        Upload File
+      </button>
+    </div>
+
+    <!-- Paste text input -->
+    <div x-show="inputMode === 'paste'" class="input-section">
+      <label for="tokenize-content" data-i18n="tokenize.paste_label">Paste log content:</label>
+      <textarea id="tokenize-content" name="content" rows="12" class="input-textarea"
+                placeholder="Paste your log content here..." data-i18n-placeholder="tokenize.paste_placeholder"></textarea>
+      <button type="submit" class="btn-primary" data-i18n="tokenize.submit">Tokenize</button>
+    </div>
+
+    <!-- File path input (best for large files) -->
+    <div x-show="inputMode === 'filepath'" class="input-section"
+         x-data="{ recentFiles: JSON.parse(localStorage.getItem('logtok-recent') || '[]') }"
+         @add-recent-file.window="
+           let path = $event.detail.value || $event.detail;
+           recentFiles = [path, ...recentFiles.filter(f => f !== path)].slice(0, 10);
+           localStorage.setItem('logtok-recent', JSON.stringify(recentFiles));
+         ">
+      <label for="tokenize-filepath" data-i18n="tokenize.filepath_label">File path (server reads directly):</label>
+      <div class="filepath-row">
+        <input type="text" id="tokenize-filepath" name="file_path" class="input-text"
+               placeholder="/path/to/logfile.log" data-i18n-placeholder="tokenize.filepath_placeholder">
+        <button type="submit" class="btn-primary" data-i18n="tokenize.submit">Tokenize</button>
+      </div>
+      <p class="input-hint" data-i18n="tokenize.filepath_hint">Best for large files -- the server reads the file directly without uploading.</p>
+
+      <!-- Recent files dropdown (D-25) -->
+      <div x-show="recentFiles.length > 0" class="recent-files">
+        <label class="recent-label" data-i18n="tokenize.recent">Recent files:</label>
+        <ul class="recent-list">
+          <template x-for="file in recentFiles" :key="file">
+            <li>
+              <button type="button" class="recent-item"
+                      @click="document.getElementById('tokenize-filepath').value = file"
+                      x-text="file"></button>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <!-- File upload (file picker + drag-and-drop) -->
+    <div x-show="inputMode === 'upload'" class="input-section"
+         x-data="{ dragging: false, fileName: '' }">
+      <label data-i18n="tokenize.upload_label">Upload a file:</label>
+
+      <!-- Drag-and-drop zone -->
+      <div class="drop-zone" :class="{ 'drop-active': dragging }"
+           @dragover.prevent="dragging = true"
+           @dragenter.prevent="dragging = true"
+           @dragleave.prevent="dragging = false"
+           @drop.prevent="
+             dragging = false;
+             const files = $event.dataTransfer.files;
+             if (files.length > 0) {
+               const input = $el.querySelector('input[type=file]');
+               input.files = files;
+               fileName = files[0].name;
+               $el.closest('form').requestSubmit();
+             }
+           ">
+        <div class="drop-zone-content">
+          <svg class="drop-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p class="drop-text" data-i18n="tokenize.drop_text">
+            Drag and drop a file here
+          </p>
+          <p class="drop-or" data-i18n="tokenize.drop_or">or</p>
+          <label class="btn-secondary file-picker-label">
+            <span data-i18n="tokenize.browse">Browse files</span>
+            <input type="file" name="file" class="file-input-hidden"
+                   @change="
+                     if ($el.files.length > 0) {
+                       fileName = $el.files[0].name;
+                       $el.closest('form').requestSubmit();
+                     }
+                   ">
+          </label>
+        </div>
+        <p x-show="fileName" class="selected-file" x-text="fileName"></p>
+      </div>
+    </div>
+  </form>
+
+  <!-- Loading indicator -->
+  <div id="tokenize-spinner" class="htmx-indicator">
+    <div class="spinner"></div>
+    <span data-i18n="tokenize.processing">Processing...</span>
+  </div>
+
+  <!-- Result area (HTMX swaps response here) -->
+  <div id="tokenize-result" class="result-area"></div>
+</div>

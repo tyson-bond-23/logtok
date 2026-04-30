@@ -1,1 +1,26 @@
-<div id="detokenize-panel"><p>Detokenize panel placeholder</p></div>
+<div id="detokenize-panel" class="panel">
+  <form hx-post="/api/detokenize"
+        hx-target="#detokenize-result"
+        hx-encoding="multipart/form-data"
+        hx-indicator="#detokenize-spinner">
+
+    <div class="input-section">
+      <label for="detokenize-content" data-i18n="detokenize.label">
+        Paste tokenized text (from Claude Code response, etc.):
+      </label>
+      <textarea id="detokenize-content" name="content" rows="12" class="input-textarea"
+                placeholder="Paste tokenized text here (e.g., text containing [IP_001], [USER_001], etc.)..."
+                data-i18n-placeholder="detokenize.placeholder"></textarea>
+      <button type="submit" class="btn-primary" data-i18n="detokenize.submit">Detokenize</button>
+    </div>
+  </form>
+
+  <!-- Loading indicator -->
+  <div id="detokenize-spinner" class="htmx-indicator">
+    <div class="spinner"></div>
+    <span data-i18n="detokenize.processing">Restoring real values...</span>
+  </div>
+
+  <!-- Result area (HTMX swaps response here) -->
+  <div id="detokenize-result" class="result-area"></div>
+</div>
