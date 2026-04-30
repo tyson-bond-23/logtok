@@ -52,7 +52,7 @@ pub async fn api_config_get() -> Html<String> {
         let checked = if disabled { "" } else { "checked" };
         let escaped_regex = escape_html(regex_example);
         category_toggles.push_str(&format!(
-            "<div class='relative group rounded-xl border p-4 transition-all {}' x-data='{{ showInfo: false }}'>\
+            "<div class='relative rounded-xl border p-4 transition-all {}' x-data='{{ showInfo: false }}'>\
                <div class='flex items-start justify-between gap-2'>\
                  <label class='flex items-center gap-3 cursor-pointer flex-1 min-w-0'>\
                    <input type='checkbox' name='enabled_{}' {} value='1' class='w-4 h-4 accent-brand-500 shrink-0 mt-0.5'>\
@@ -61,15 +61,15 @@ pub async fn api_config_get() -> Html<String> {
                      <span class='block text-xs text-zinc-500 mt-0.5'>{}</span>\
                    </div>\
                  </label>\
-                 <button type='button' @click='showInfo = !showInfo' \
+                 <button type='button' @click.stop='showInfo = !showInfo' @click.outside='showInfo = false' \
                          class='w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 transition-colors' \
                          :class=\"showInfo ? 'bg-brand-500 text-white' : 'bg-zinc-700 text-zinc-400 hover:bg-zinc-600 hover:text-zinc-200'\">\
                    ?</button>\
-               </div>\
-               <div x-show='showInfo' x-transition x-cloak \
-                    class='mt-3 pt-3 border-t border-zinc-700/50'>\
-                 <p class='text-[10px] font-medium uppercase tracking-wider text-zinc-500 mb-1'>Pattern</p>\
-                 <code class='block text-xs font-mono text-emerald-400 bg-zinc-900/60 rounded-lg px-3 py-2 break-all'>{}</code>\
+                 <div x-show='showInfo' x-transition x-cloak @click.outside='showInfo = false' \
+                      class='absolute z-10 right-0 top-full mt-1 w-64 p-3 rounded-xl border border-zinc-700 bg-surface-900 shadow-xl cfg-tooltip'>\
+                   <p class='text-[10px] font-medium uppercase tracking-wider text-zinc-500 mb-1'>Pattern</p>\
+                   <code class='block text-xs font-mono text-emerald-400 bg-zinc-800 rounded-lg px-3 py-2 break-all'>{}</code>\
+                 </div>\
                </div>\
              </div>",
             if disabled { "border-zinc-800 bg-surface-800/50 opacity-60" } else { "border-zinc-700 bg-surface-800 hover:border-zinc-600" },

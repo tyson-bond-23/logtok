@@ -99,7 +99,11 @@ pub async fn api_docs() -> Html<String> {
                    <h3 class='font-semibold docs-heading text-sm'>Tokenize</h3>\
                  </div>\
                  <p class='text-xs text-zinc-500 mb-3'>Replace sensitive data with safe tokens</p>\
-                 <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code'>logtok tokenize app.log -o safe.log</code>\
+                 <div class='relative group/copy'>\
+                   <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code cursor-pointer' \
+                         onclick='navigator.clipboard.writeText(this.textContent.trim());var b=this.nextElementSibling;b.textContent=\"Copied!\";setTimeout(function(){{b.textContent=\"Click to copy\"}},1500)'>logtok tokenize app.log -o safe.log</code>\
+                   <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
+                 </div>\
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-2 mb-3'>\
@@ -107,7 +111,11 @@ pub async fn api_docs() -> Html<String> {
                    <h3 class='font-semibold docs-heading text-sm'>Analyze</h3>\
                  </div>\
                  <p class='text-xs text-zinc-500 mb-3'>Send to any AI without exposing secrets</p>\
-                 <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code'>claude &quot;diagnose errors in safe.log&quot;</code>\
+                 <div class='relative group/copy'>\
+                   <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code cursor-pointer' \
+                         onclick='navigator.clipboard.writeText(this.textContent.trim());var b=this.nextElementSibling;b.textContent=\"Copied!\";setTimeout(function(){{b.textContent=\"Click to copy\"}},1500)'>claude &quot;diagnose errors in safe.log&quot;</code>\
+                   <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
+                 </div>\
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-2 mb-3'>\
@@ -115,7 +123,11 @@ pub async fn api_docs() -> Html<String> {
                    <h3 class='font-semibold docs-heading text-sm'>Detokenize</h3>\
                  </div>\
                  <p class='text-xs text-zinc-500 mb-3'>Restore real values in the AI response</p>\
-                 <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code'>logtok detokenize -f ai-response.md</code>\
+                 <div class='relative group/copy'>\
+                   <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code cursor-pointer' \
+                         onclick='navigator.clipboard.writeText(this.textContent.trim());var b=this.nextElementSibling;b.textContent=\"Copied!\";setTimeout(function(){{b.textContent=\"Click to copy\"}},1500)'>logtok detokenize -f ai-response.md</code>\
+                   <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
+                 </div>\
                </div>\
              </div>\
            </section>\
@@ -163,9 +175,14 @@ fn build_commands_html() -> String {
 
     for cmd in &commands {
         html.push_str(&format!(
-            "<div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 mb-3'>\
-               <h3 class='font-semibold text-zinc-100 mb-1'><code class='text-brand-400 font-mono'>logtok {}</code></h3>\
+            "<div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 mb-3 docs-card'>\
+               <div class='flex items-center gap-2 mb-1'>\
+                 <h3 class='font-semibold docs-heading'><code class='text-brand-400 font-mono'>logtok {}</code></h3>\
+                 <button type='button' onclick='navigator.clipboard.writeText(\"logtok {}\");this.textContent=\"Copied!\";setTimeout(()=>this.textContent=\"Copy\",1500)' \
+                         class='px-2 py-0.5 text-[10px] font-medium rounded border border-zinc-700 text-zinc-500 hover:text-zinc-200 hover:border-zinc-600 transition-colors'>Copy</button>\
+               </div>\
                <p class='text-sm text-zinc-400'>{}</p>",
+            escape_html(&cmd.name),
             escape_html(&cmd.name),
             escape_html(&cmd.about)
         ));
@@ -211,10 +228,45 @@ fn build_commands_html() -> String {
         }
 
         if let Some(after) = &cmd.after_long_help {
-            html.push_str(&format!(
-                "<div class='mt-3 p-3 rounded-lg bg-surface-900 text-xs font-mono text-zinc-500 whitespace-pre-wrap'>{}</div>",
-                escape_html(after)
-            ));
+            // Parse example lines and make each command clickable to copy
+            let mut examples_html = String::new();
+            for line in after.lines() {
+                let trimmed = line.trim();
+                if trimmed.starts_with("logtok ") || trimmed.starts_with("echo ") || trimmed.starts_with("cat ") {
+                    // Extract just the command part (before description separated by multiple spaces)
+                    let cmd_text = if let Some(idx) = trimmed.find("  ") {
+                        trimmed[..idx].trim()
+                    } else {
+                        trimmed
+                    };
+                    let desc_text = if let Some(idx) = trimmed.find("  ") {
+                        trimmed[idx..].trim()
+                    } else {
+                        ""
+                    };
+                    examples_html.push_str(&format!(
+                        "<div class='flex items-center gap-2 py-0.5 group/ex'>\
+                           <code class='text-brand-400 cursor-pointer hover:text-brand-300 transition-colors' \
+                                 onclick='navigator.clipboard.writeText(this.textContent.trim());var s=this.nextElementSibling;if(s){{s.textContent=\"Copied!\";setTimeout(()=>s.textContent=\"{}\",1500)}}'>{}</code>\
+                           <span class='text-zinc-600 text-[10px]'>{}</span>\
+                         </div>",
+                        escape_html(desc_text),
+                        escape_html(cmd_text),
+                        escape_html(desc_text)
+                    ));
+                } else if !trimmed.is_empty() {
+                    examples_html.push_str(&format!(
+                        "<div class='text-zinc-500 py-0.5 mt-1 font-semibold'>{}</div>",
+                        escape_html(trimmed)
+                    ));
+                }
+            }
+            if !examples_html.is_empty() {
+                html.push_str(&format!(
+                    "<div class='mt-3 p-3 rounded-lg bg-surface-900 text-xs font-mono docs-code'>{}</div>",
+                    examples_html
+                ));
+            }
         }
 
         html.push_str("</div>");

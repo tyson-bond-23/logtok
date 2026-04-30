@@ -61,10 +61,27 @@ function app() {
       }
     },
 
+    // Toast notification
+    toast: '',
+    toastType: 'success',
+    toastVisible: false,
+
+    showToast(message, type) {
+      this.toast = message;
+      this.toastType = type || 'success';
+      this.toastVisible = true;
+      setTimeout(function() { this.toastVisible = false; }.bind(this), 4000);
+    },
+
     init() {
       // Load initial translations from inlined data
       if (window.__i18n) {
         this.t = window.__i18n;
+      }
+
+      // Load stored language translations on startup
+      if (this.lang !== 'en') {
+        this.loadTranslations(this.lang);
       }
 
       // D-12: Watch OS theme changes in real-time
@@ -76,6 +93,19 @@ function app() {
         document.documentElement.dir = 'rtl';
         document.documentElement.lang = 'he';
       }
+
+      // Listen for HTMX responses to show toast banners
+      var self = this;
+      document.body.addEventListener('htmx:afterSwap', function(evt) {
+        var target = evt.detail.target;
+        var html = target.innerHTML;
+        if (html.indexOf('text-emerald-400') !== -1 || html.indexOf('border-emerald-500') !== -1) {
+          self.showToast(self.t['status.tokenized'] || 'Completed successfully', 'success');
+        } else if (html.indexOf('text-red-400') !== -1 || html.indexOf('border-red-500') !== -1) {
+          var msg = target.querySelector('div') ? target.querySelector('div').textContent.trim() : '';
+          self.showToast(msg || self.t['status.error'] || 'An error occurred', 'error');
+        }
+      });
 
       // D-22: WebSocket heartbeat for auto-stop
       this.startHeartbeat();

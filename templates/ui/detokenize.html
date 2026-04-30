@@ -1,7 +1,7 @@
 <div>
   <div class="mb-8">
-    <h1 class="text-2xl font-bold tracking-tight" :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Detokenize</h1>
-    <p class="mt-1 text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">Restore real values from tokenized AI responses</p>
+    <h1 class="text-2xl font-bold tracking-tight" :class="theme === 'light' ? 'text-zinc-900' : 'text-white'" x-text="t['tab.detokenize'] || 'Detokenize'"></h1>
+    <p class="mt-1 text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'" x-text="t['label.drop_zone'] || 'Restore real values from tokenized AI responses'"></p>
   </div>
 
   <form hx-post="/api/detokenize"
@@ -30,8 +30,8 @@
          ">
 
       <textarea name="content" rows="12"
-                class="w-full border-0 bg-transparent px-5 py-4 text-[15px] font-mono leading-relaxed placeholder:text-zinc-500 focus:outline-none focus:ring-0 resize-y"
-                :class="theme === 'light' ? 'text-zinc-800' : 'text-zinc-200'"
+                class="w-full border-0 px-5 py-4 text-[15px] font-mono leading-relaxed placeholder:text-zinc-500 focus:outline-none focus:ring-0 resize-y"
+                :class="theme === 'light' ? 'text-zinc-800 bg-white' : 'text-zinc-200 bg-zinc-800/50'"
                 placeholder="Paste tokenized text here (e.g. text with [IP_001], [USER_001]...), or drag & drop a file..."></textarea>
 
       <div class="flex items-center justify-between px-5 py-3 border-t"
