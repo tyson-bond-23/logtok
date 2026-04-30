@@ -116,4 +116,19 @@ Examples:
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+
+    /// Start the interactive dashboard in your browser
+    ///
+    /// Launches a local web server on 127.0.0.1 and opens an interactive
+    /// dashboard with tokenize/detokenize panels, token store browser,
+    /// config editor, and documentation reference.
+    #[command(after_long_help = "\
+Examples:
+  logtok ui              Start dashboard on default port (8080)
+  logtok ui --port 3000  Start dashboard on port 3000")]
+    Ui {
+        /// Port to bind the server to (default: 8080, auto-increments if busy)
+        #[arg(short, long)]
+        port: Option<u16>,
+    },
 }

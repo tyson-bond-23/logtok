@@ -1,0 +1,86 @@
+use std::collections::HashMap;
+
+pub fn translations(lang: &str) -> HashMap<&'static str, &'static str> {
+    match lang {
+        "he" => hebrew(),
+        _ => english(),
+    }
+}
+
+fn english() -> HashMap<&'static str, &'static str> {
+    HashMap::from([
+        ("tab.tokenize", "Tokenize"),
+        ("tab.detokenize", "Detokenize"),
+        ("tab.store", "Token Store"),
+        ("tab.config", "Config"),
+        ("tab.docs", "Docs"),
+        ("action.submit", "Submit"),
+        ("action.clear", "Clear"),
+        ("action.save", "Save"),
+        ("action.copy", "Copy"),
+        ("label.file_path", "File path"),
+        ("label.paste_content", "Paste log content"),
+        ("label.drop_zone", "Drop file here or click to browse"),
+        ("label.or", "or"),
+        ("label.recent_files", "Recent files"),
+        ("label.no_tokens", "No tokens in store"),
+        ("label.token", "Token"),
+        ("label.value", "Value"),
+        ("label.category", "Category"),
+        ("label.count", "Count"),
+        ("label.processing", "Processing..."),
+        ("label.theme_toggle", "Toggle theme"),
+        ("label.language", "Language"),
+        ("config.disabled_categories", "Disabled categories"),
+        ("config.custom_patterns", "Custom patterns"),
+        ("config.pattern_name", "Pattern name"),
+        ("config.regex", "Regex pattern"),
+        ("config.capture_group", "Capture group"),
+        ("config.ttl_days", "Token TTL (days)"),
+        ("config.raw_toml", "Raw TOML"),
+        ("config.form_view", "Form view"),
+        ("status.tokenized", "Tokenized successfully"),
+        ("status.detokenized", "Detokenized successfully"),
+        ("status.config_saved", "Configuration saved"),
+        ("status.error", "Error"),
+    ])
+}
+
+fn hebrew() -> HashMap<&'static str, &'static str> {
+    HashMap::from([
+        ("tab.tokenize", "\u{05d8}\u{05d5}\u{05e7}\u{05e0}\u{05d9}\u{05d6}\u{05e6}\u{05d9}\u{05d4}"),
+        ("tab.detokenize", "\u{05e9}\u{05d7}\u{05d6}\u{05d5}\u{05e8}"),
+        ("tab.store", "\u{05de}\u{05d0}\u{05d2}\u{05e8} \u{05d8}\u{05d5}\u{05e7}\u{05e0}\u{05d9}\u{05dd}"),
+        ("tab.config", "\u{05d4}\u{05d2}\u{05d3}\u{05e8}\u{05d5}\u{05ea}"),
+        ("tab.docs", "\u{05ea}\u{05d9}\u{05e2}\u{05d5}\u{05d3}"),
+        ("action.submit", "\u{05e9}\u{05dc}\u{05d7}"),
+        ("action.clear", "\u{05e0}\u{05e7}\u{05d4}"),
+        ("action.save", "\u{05e9}\u{05de}\u{05d5}\u{05e8}"),
+        ("action.copy", "\u{05d4}\u{05e2}\u{05ea}\u{05e7}"),
+        ("label.file_path", "\u{05e0}\u{05ea}\u{05d9}\u{05d1} \u{05e7}\u{05d5}\u{05d1}\u{05e5}"),
+        ("label.paste_content", "\u{05d4}\u{05d3}\u{05d1}\u{05e7} \u{05ea}\u{05d5}\u{05db}\u{05df} \u{05dc}\u{05d5}\u{05d2}"),
+        ("label.drop_zone", "\u{05d2}\u{05e8}\u{05d5}\u{05e8} \u{05e7}\u{05d5}\u{05d1}\u{05e5} \u{05dc}\u{05db}\u{05d0}\u{05df} \u{05d0}\u{05d5} \u{05dc}\u{05d7}\u{05e5} \u{05dc}\u{05d1}\u{05d7}\u{05d9}\u{05e8}\u{05d4}"),
+        ("label.or", "\u{05d0}\u{05d5}"),
+        ("label.recent_files", "\u{05e7}\u{05d1}\u{05e6}\u{05d9}\u{05dd} \u{05d0}\u{05d7}\u{05e8}\u{05d5}\u{05e0}\u{05d9}\u{05dd}"),
+        ("label.no_tokens", "\u{05d0}\u{05d9}\u{05df} \u{05d8}\u{05d5}\u{05e7}\u{05e0}\u{05d9}\u{05dd} \u{05d1}\u{05de}\u{05d0}\u{05d2}\u{05e8}"),
+        ("label.token", "\u{05d8}\u{05d5}\u{05e7}\u{05df}"),
+        ("label.value", "\u{05e2}\u{05e8}\u{05da}"),
+        ("label.category", "\u{05e7}\u{05d8}\u{05d2}\u{05d5}\u{05e8}\u{05d9}\u{05d4}"),
+        ("label.count", "\u{05db}\u{05de}\u{05d5}\u{05ea}"),
+        ("label.processing", "\u{05de}\u{05e2}\u{05d1}\u{05d3}..."),
+        ("label.theme_toggle", "\u{05d4}\u{05d7}\u{05dc}\u{05e3} \u{05e2}\u{05e8}\u{05db}\u{05ea} \u{05e0}\u{05d5}\u{05e9}\u{05d0}"),
+        ("label.language", "\u{05e9}\u{05e4}\u{05d4}"),
+        ("config.disabled_categories", "\u{05e7}\u{05d8}\u{05d2}\u{05d5}\u{05e8}\u{05d9}\u{05d5}\u{05ea} \u{05de}\u{05d5}\u{05e9}\u{05d1}\u{05ea}\u{05d5}\u{05ea}"),
+        ("config.custom_patterns", "\u{05ea}\u{05d1}\u{05e0}\u{05d9}\u{05d5}\u{05ea} \u{05de}\u{05d5}\u{05ea}\u{05d0}\u{05de}\u{05d5}\u{05ea} \u{05d0}\u{05d9}\u{05e9}\u{05d9}\u{05ea}"),
+        ("config.pattern_name", "\u{05e9}\u{05dd} \u{05ea}\u{05d1}\u{05e0}\u{05d9}\u{05ea}"),
+        ("config.regex", "\u{05ea}\u{05d1}\u{05e0}\u{05d9}\u{05ea} \u{05e8}\u{05d2}\u{05d5}\u{05dc}\u{05e8}\u{05d9}\u{05ea}"),
+        ("config.capture_group", "\u{05e7}\u{05d1}\u{05d5}\u{05e6}\u{05ea} \u{05dc}\u{05db}\u{05d9}\u{05d3}\u{05d4}"),
+        ("config.ttl_days", "\u{05ea}\u{05d5}\u{05e7}\u{05e3} \u{05d8}\u{05d5}\u{05e7}\u{05df} (\u{05d9}\u{05de}\u{05d9}\u{05dd})"),
+        ("config.raw_toml", "TOML \u{05d2}\u{05d5}\u{05dc}\u{05de}\u{05d9}"),
+        ("config.form_view", "\u{05ea}\u{05e6}\u{05d5}\u{05d2}\u{05ea} \u{05d8}\u{05d5}\u{05e4}\u{05e1}"),
+        ("status.tokenized", "\u{05d8}\u{05d5}\u{05e7}\u{05e0}\u{05d9}\u{05d6}\u{05e6}\u{05d9}\u{05d4} \u{05d4}\u{05e6}\u{05dc}\u{05d9}\u{05d7}\u{05d4}"),
+        ("status.detokenized", "\u{05e9}\u{05d7}\u{05d6}\u{05d5}\u{05e8} \u{05d4}\u{05e6}\u{05dc}\u{05d9}\u{05d7}"),
+        ("status.config_saved", "\u{05d4}\u{05d4}\u{05d2}\u{05d3}\u{05e8}\u{05d5}\u{05ea} \u{05e0}\u{05e9}\u{05de}\u{05e8}\u{05d5}"),
+        ("status.error", "\u{05e9}\u{05d2}\u{05d9}\u{05d0}\u{05d4}"),
+    ])
+}

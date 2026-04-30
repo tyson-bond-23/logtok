@@ -10,6 +10,7 @@ mod json_processor;
 mod processor;
 mod store;
 mod tokenizer;
+mod ui;
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -171,6 +172,12 @@ fn main() -> Result<()> {
             if !cli.quiet {
                 eprintln!("logtok: documentation written to {}", output_path.display());
             }
+        }
+
+        Commands::Ui { port } => {
+            let rt = tokio::runtime::Runtime::new()
+                .context("Failed to start async runtime for UI server")?;
+            rt.block_on(ui::start_server(port))?;
         }
     }
 
