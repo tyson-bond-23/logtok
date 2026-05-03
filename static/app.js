@@ -18,6 +18,10 @@ function app() {
     setTab(name) {
       this.tab = name;
       localStorage.setItem('logtok-tab', name);
+      // Auto-refresh store data when switching to store tab
+      if (name === 'store') {
+        document.body.dispatchEvent(new CustomEvent('refreshStore'));
+      }
     },
 
     setLang(l) {

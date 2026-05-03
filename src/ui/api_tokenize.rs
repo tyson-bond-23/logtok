@@ -101,7 +101,7 @@ pub async fn api_tokenize(
                 "<div class='rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 mt-4'>\
                    <div class='flex items-center justify-between mb-3'>\
                      <span class='text-xs font-medium text-emerald-400'>{}</span>\
-                     <button onclick='navigator.clipboard.writeText(this.closest(\"div\").querySelector(\"pre\").textContent);this.textContent=\"Copied!\";setTimeout(()=>this.textContent=\"Copy\",2000)' \
+                     <button onclick='navigator.clipboard.writeText(this.closest(\".rounded-2xl\").querySelector(\"pre\").textContent);this.textContent=\"Copied!\";this.classList.add(\"border-emerald-500\",\"text-emerald-400\");setTimeout(function(){{this.textContent=\"Copy\";this.classList.remove(\"border-emerald-500\",\"text-emerald-400\")}}.bind(this),2000);if(window.Alpine){{var d=Alpine.$data(document.body);if(d&&d.showToast)d.showToast(\"Copied to clipboard\",\"success\")}}' \
                              class='px-3 py-1 text-xs font-medium rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors'>Copy</button>\
                    </div>\
                    <pre class='text-sm font-mono leading-relaxed text-zinc-200 bg-zinc-900/60 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap break-words'>{}</pre>\
@@ -336,7 +336,7 @@ pub async fn api_detokenize(
             "<div class='rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-4 mt-4'>\
                <div class='flex items-center justify-between mb-3'>\
                  <span class='text-xs font-medium text-emerald-400'>{} tokens replaced, {} unresolved</span>\
-                 <button onclick='navigator.clipboard.writeText(this.closest(\"div\").querySelector(\"pre\").textContent);this.textContent=\"Copied!\";setTimeout(()=>this.textContent=\"Copy\",2000)' \
+                 <button onclick='navigator.clipboard.writeText(this.closest(\".rounded-2xl\").querySelector(\"pre\").textContent);this.textContent=\"Copied!\";this.classList.add(\"border-emerald-500\",\"text-emerald-400\");setTimeout(function(){{this.textContent=\"Copy\";this.classList.remove(\"border-emerald-500\",\"text-emerald-400\")}}.bind(this),2000);if(window.Alpine){{var d=Alpine.$data(document.body);if(d&&d.showToast)d.showToast(\"Copied to clipboard\",\"success\")}}' \
                          class='px-3 py-1 text-xs font-medium rounded-md border border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors'>Copy</button>\
                </div>\
                <pre class='text-sm font-mono leading-relaxed text-zinc-200 bg-zinc-900/60 rounded-xl p-4 overflow-x-auto whitespace-pre-wrap break-words'>{}</pre>\
