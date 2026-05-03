@@ -8,3 +8,7 @@
 
 # Editor/OS files
 $null
+test_sample.log
+test_logtok.txt
+output.txt
+.playwright-mcp/
