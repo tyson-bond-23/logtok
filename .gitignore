@@ -1,14 +1,38 @@
-# Build artifacts
+# Rust build artifacts
 /target/
 
-# Node.js (used for Tailwind CSS compilation only)
+# Node.js (Tailwind CSS compilation only)
 /node_modules/
 /package.json
 /package-lock.json
 
-# Editor/OS files
-$null
+# Token store (contains encrypted sensitive data)
+.loktok/
+
+# Test and temp files
 test_sample.log
 test_logtok.txt
 output.txt
+*.log.bak
+*_TOKENIZED.*
+
+# Playwright test artifacts
 .playwright-mcp/
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+$null
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment files
+.env
+.env.local
+.env.*.local
