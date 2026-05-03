@@ -54,7 +54,8 @@
         </button>
 
         <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border"
-              :class="theme === 'light' ? 'text-zinc-400 border-zinc-200' : 'text-zinc-600 border-zinc-800'">v{{ version }}</span>
+              :class="theme === 'light' ? 'text-zinc-400 border-zinc-200' : 'text-zinc-600 border-zinc-800'"
+              data-version="{{ version }}">v{{ version }}</span>
       </div>
     </div>
   </nav>
@@ -113,73 +114,148 @@
        class="z-50 flex items-center justify-center p-4"
        style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
     <div class="w-full max-w-lg rounded-2xl border shadow-xl"
-         style="padding: 2.5rem 2.5rem 2rem;"
+         style="padding: 2.5rem 2.5rem 2rem; max-height: 90vh; overflow-y: auto;"
          :class="theme === 'light' ? 'bg-white border-zinc-200' : 'bg-surface-800 border-zinc-700'"
          @click.outside="dismissOnboarding()">
 
-      <div class="text-center" style="margin-bottom: 2rem;">
-        <h2 class="text-2xl font-bold tracking-tight"
-            style="margin-bottom: 0.5rem;"
-            :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Welcome to logtok</h2>
-        <p class="text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-          Diagnose production logs safely in 3 steps
-        </p>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:0;">
-
-        <!-- Step 1 -->
-        <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;"
-             :class="theme === 'light' ? 'bg-zinc-50' : 'bg-brand-500/[0.04]'">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold" style="font-size:0.9375rem;">1</div>
-          <div style="padding-top:0.125rem;">
-            <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Tokenize</p>
-            <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-              Paste or upload your raw logs. Sensitive data gets replaced with safe tokens like <code class="text-brand-400 text-xs font-mono">[IP_001]</code>.
+      <!-- WELCOME VIEW (first visit) -->
+      <template x-if="!isNewVersion && !showChangelog">
+        <div>
+          <div class="text-center" style="margin-bottom: 2rem;">
+            <h2 class="text-2xl font-bold tracking-tight"
+                style="margin-bottom: 0.5rem;"
+                :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Welcome to logtok</h2>
+            <p class="text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Diagnose production logs safely in 3 steps
             </p>
           </div>
-        </div>
 
-        <!-- Arrow 1→2 -->
-        <div class="flex justify-center" style="padding:0.25rem 0 0.25rem 0.5rem;">
-          <svg width="20" height="24" viewBox="0 0 20 24" fill="none" :stroke="theme === 'light' ? '#a1a1aa' : '#948979'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L10 18"/><path d="M5 14 L10 20 L15 14"/></svg>
-        </div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <!-- Step 1 -->
+            <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;"
+                 :class="theme === 'light' ? 'bg-zinc-50' : 'bg-brand-500/[0.04]'">
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold" style="font-size:0.9375rem;">1</div>
+              <div style="padding-top:0.125rem;">
+                <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Tokenize</p>
+                <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+                  Paste or upload your raw logs. Sensitive data gets replaced with safe tokens like <code class="text-brand-400 text-xs font-mono">[IP_001]</code>.
+                </p>
+              </div>
+            </div>
+            <div class="flex justify-center" style="padding:0.25rem 0 0.25rem 0.5rem;">
+              <svg width="20" height="24" viewBox="0 0 20 24" fill="none" :stroke="theme === 'light' ? '#a1a1aa' : '#948979'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L10 18"/><path d="M5 14 L10 20 L15 14"/></svg>
+            </div>
+            <!-- Step 2 -->
+            <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;">
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold" style="font-size:0.9375rem;">2</div>
+              <div style="padding-top:0.125rem;">
+                <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Analyze with AI</p>
+                <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+                  Copy the tokenized output into Claude Code or any AI. It diagnoses errors without seeing your real secrets.
+                </p>
+              </div>
+            </div>
+            <div class="flex justify-center" style="padding:0.25rem 0 0.25rem 0.5rem;">
+              <svg width="20" height="24" viewBox="0 0 20 24" fill="none" :stroke="theme === 'light' ? '#a1a1aa' : '#948979'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L10 18"/><path d="M5 14 L10 20 L15 14"/></svg>
+            </div>
+            <!-- Step 3 -->
+            <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;">
+              <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold" style="font-size:0.9375rem;">3</div>
+              <div style="padding-top:0.125rem;">
+                <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Detokenize</p>
+                <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+                  Paste the AI's response here. Tokens are replaced with real values for a clear, readable diagnosis.
+                </p>
+              </div>
+            </div>
+          </div>
 
-        <!-- Step 2 -->
-        <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold" style="font-size:0.9375rem;">2</div>
-          <div style="padding-top:0.125rem;">
-            <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Analyze with AI</p>
-            <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-              Copy the tokenized output into Claude Code or any AI. It diagnoses errors without seeing your real secrets.
+          <button @click="dismissOnboarding()"
+                  class="w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                  style="margin-top:1.75rem;padding:0.75rem 1.5rem;"
+                  :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
+            Get Started
+          </button>
+        </div>
+      </template>
+
+      <!-- UPDATE VIEW (new version detected) -->
+      <template x-if="isNewVersion && !showChangelog">
+        <div>
+          <div class="text-center" style="margin-bottom: 2rem;">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/20 text-brand-400 text-xs font-semibold" style="margin-bottom: 1rem;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+              Updated to v{{ version }}
+            </div>
+            <h2 class="text-2xl font-bold tracking-tight"
+                style="margin-bottom: 0.5rem;"
+                :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">logtok has been updated</h2>
+            <p class="text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              New features and improvements are ready
             </p>
           </div>
-        </div>
 
-        <!-- Arrow 2→3 -->
-        <div class="flex justify-center" style="padding:0.25rem 0 0.25rem 0.5rem;">
-          <svg width="20" height="24" viewBox="0 0 20 24" fill="none" :stroke="theme === 'light' ? '#a1a1aa' : '#948979'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L10 18"/><path d="M5 14 L10 20 L15 14"/></svg>
-        </div>
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <button @click="showChangelog = true"
+                    class="w-full flex items-center justify-between rounded-xl border transition-colors"
+                    style="padding:1rem 1.25rem;"
+                    :class="theme === 'light' ? 'border-zinc-200 hover:border-brand-300 hover:bg-zinc-50' : 'border-zinc-700 hover:border-brand-500/50 hover:bg-brand-500/[0.04]'">
+              <div class="flex items-center gap-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-brand-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span class="text-sm font-semibold" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">What's New?</span>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" :class="theme === 'light' ? 'text-zinc-400' : 'text-zinc-500'"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
 
-        <!-- Step 3 -->
-        <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold" style="font-size:0.9375rem;">3</div>
-          <div style="padding-top:0.125rem;">
-            <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Detokenize</p>
-            <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-              Paste the AI's response here. Tokens are replaced with real values for a clear, readable diagnosis.
-            </p>
+            <button @click="dismissOnboarding()"
+                    class="w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                    style="padding:0.75rem 1.5rem;"
+                    :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
+              Continue
+            </button>
           </div>
         </div>
+      </template>
 
-      </div>
+      <!-- CHANGELOG VIEW -->
+      <template x-if="showChangelog">
+        <div>
+          <div style="margin-bottom: 1.5rem;">
+            <button @click="showChangelog = false" class="flex items-center gap-1 text-xs font-medium transition-colors"
+                    :class="theme === 'light' ? 'text-zinc-500 hover:text-zinc-900' : 'text-zinc-400 hover:text-zinc-100'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+              Back
+            </button>
+            <h2 class="text-xl font-bold tracking-tight" style="margin-top:0.75rem;"
+                :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">What's New in v{{ version }}</h2>
+          </div>
 
-      <button @click="dismissOnboarding()"
-              class="w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-              style="margin-top:1.75rem;padding:0.75rem 1.5rem;"
-              :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
-        Get Started
-      </button>
+          <div style="display:flex;flex-direction:column;gap:1rem;">
+            {% for change in changelog %}
+            <div class="flex items-start" style="gap:0.75rem;">
+              <div class="flex-shrink-0" style="margin-top:0.125rem;">
+                {% if change.kind == "feat" %}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-400"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                {% else %}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-brand-400"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                {% endif %}
+              </div>
+              <div>
+                <p class="text-sm font-medium" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">{{ change.title }}</p>
+                <p class="text-xs" style="margin-top:0.125rem;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">{{ change.description }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <button @click="dismissOnboarding()"
+                  class="w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                  style="margin-top:1.75rem;padding:0.75rem 1.5rem;"
+                  :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
+            Got it
+          </button>
+        </div>
+      </template>
     </div>
   </div>
 

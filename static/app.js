@@ -12,8 +12,15 @@ function app() {
     t: {},
     // Config editor mode
     configMode: 'form', // 'form' or 'toml'
-    // First-time onboarding
-    showOnboarding: !localStorage.getItem('logtok-onboarded'),
+    // Onboarding: show on first visit OR new version
+    showOnboarding: (function() {
+      var ver = document.querySelector('[data-version]');
+      var currentVersion = ver ? ver.getAttribute('data-version') : '';
+      var lastVersion = localStorage.getItem('logtok-version');
+      return !lastVersion || lastVersion !== currentVersion;
+    })(),
+    isNewVersion: !!(localStorage.getItem('logtok-version') && localStorage.getItem('logtok-version') !== (document.querySelector('[data-version]') ? document.querySelector('[data-version]').getAttribute('data-version') : '')),
+    showChangelog: false,
 
     setTab(name) {
       this.tab = name;
@@ -47,7 +54,9 @@ function app() {
 
     dismissOnboarding() {
       this.showOnboarding = false;
-      localStorage.setItem('logtok-onboarded', '1');
+      this.showChangelog = false;
+      var ver = document.querySelector('[data-version]');
+      if (ver) localStorage.setItem('logtok-version', ver.getAttribute('data-version'));
     },
 
     showToast(message, type) {
