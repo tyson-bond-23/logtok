@@ -9,6 +9,7 @@ mod ws;
 
 use anyhow::Result;
 use std::net::SocketAddr;
+use std::sync::atomic::AtomicUsize;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::sync::{oneshot, Mutex};
@@ -16,6 +17,8 @@ use tokio::sync::{oneshot, Mutex};
 pub struct AppState {
     pub shutdown_tx: Mutex<Option<oneshot::Sender<()>>>,
     pub session_key: String,
+    /// Track active WebSocket connections so page reloads don't kill the server
+    pub ws_connections: AtomicUsize,
 }
 
 pub async fn start_server(port: Option<u16>) -> Result<()> {
@@ -42,6 +45,7 @@ pub async fn start_server(port: Option<u16>) -> Result<()> {
     let state = Arc::new(AppState {
         shutdown_tx: Mutex::new(Some(shutdown_tx)),
         session_key: key,
+        ws_connections: AtomicUsize::new(0),
     });
     let app = routes::build_router(state);
 
