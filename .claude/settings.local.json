@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export REVIEW_PATH=\".planning/phases/01-core-tokenization-engine/01-REVIEW.md\")",
+      "Bash(node -e ':*)"
+    ]
+  }
+}

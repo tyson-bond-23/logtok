@@ -1,0 +1,20 @@
+2024-01-15 10:23:45 INFO Server started on [IP_001]:8080
+[x3] 2024-01-15 10:23:46 INFO Connected to [HOST_001]:5432
+2024-01-15 10:23:47 DEBUG Loading config from [PATH_001]
+2024-01-15 10:23:48 INFO API key validated: api_key=[KEY_001]
+2024-01-15 10:23:49 INFO User login: [EMAIL_001] from [IP_002]
+2024-01-15 10:23:50 WARN Slow query to [HOST_002] took 2300ms
+[x2] 2024-01-15 10:23:51 ERROR Connection refused to [URL_001]
+2024-01-15 10:23:52 INFO Password reset for user: [NAME_001]=[PASS_001]
+2024-01-15 10:23:53 DEBUG Reading cache from [PATH_002]
+2024-01-15 10:23:54 INFO Request from [IP_001] to /api/users
+2024-01-15 10:23:55 WARN Certificate expiry for [HOST_003]:6379
+2024-01-15 10:23:56 ERROR Auth failed for [EMAIL_002] from [IP_003]
+[x3] 2024-01-15 10:23:57 INFO Notification sent to [EMAIL_003]
+2024-01-15 10:23:58 DEBUG Token refresh: bearer=[KEY_002]
+2024-01-15 10:23:59 INFO JWT received: [JWT_001]
+2024-01-15 10:24:00 INFO Connection string: [CONN_001]
+2024-01-15 10:24:01 INFO Server MAC: [MAC_001]
+2024-01-15 10:24:02 INFO Request ID: [UUID_001]
+2024-01-15 10:24:03 INFO OS: [OS_001]-generic
+2024-01-15 10:24:04 INFO Shutdown complete

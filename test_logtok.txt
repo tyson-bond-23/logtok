@@ -1,0 +1,43 @@
+● Log Diagnosis
+
+  Errors (immediate action needed)
+
+  1. Connection refused to [URL_001] (x2) — A downstream service/API is
+  unreachable. Check if the target service is running, firewall rules, and
+  DNS resolution.
+  2. Auth failed for [EMAIL_002] from [IP_003] — Failed authentication
+  attempt. Could be invalid credentials, locked account, or a brute-force
+  attempt. Check if this IP has repeated failures.
+
+  Warnings (investigate soon)
+
+  3. Slow query to [HOST_002] took 2300ms — Database or service query is
+  well above typical thresholds. Check query plans, indexes, connection pool
+   saturation, or network latency to that host.
+  4. Certificate expiry for [HOST_003]:6379 — The TLS cert for what appears
+  to be a Redis instance is expiring. Rotate the certificate before it
+  causes connection failures.
+
+  Security concerns (critical)
+
+  These aren't runtime errors but are serious issues in the logging itself:
+
+  5. API key logged in plaintext (api_key=[KEY_001]) — Secrets should never
+  appear in logs. Mask or redact credentials before logging.
+  6. Password logged in plaintext ([NAME_001]=[PASS_001]) — Same issue,
+  worse severity. A password reset is writing the actual password to logs.
+  7. Bearer token logged (bearer=[KEY_002]) — Token refresh is dumping the
+  auth token. Anyone with log access can impersonate users.
+  8. JWT logged in plaintext ([JWT_001]) — JWTs contain claims and can be
+  replayed if not expired.
+  9. Connection string logged ([CONN_001]) — Connection strings often
+  contain embedded credentials.
+
+  Priority order
+
+  1. Fix the secret leakage (items 5-9) — this is the most urgent. Sanitize
+  your logging to redact secrets, tokens, passwords, and connection strings.
+  2. Investigate connection refused — the x2 multiplier means it's
+  recurring.
+  3. Rotate the expiring certificate on the Redis host.
+  4. Optimize the slow query to [HOST_002].

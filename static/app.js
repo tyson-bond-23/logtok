@@ -4,8 +4,6 @@ function app() {
   return {
     // D-24: Last active tab persists via localStorage
     tab: localStorage.getItem('logtok-tab') || 'tokenize',
-    // D-23: Language preference persists via localStorage
-    lang: localStorage.getItem('logtok-lang') || 'en',
     // D-26: Theme follows OS preference -- NOT persisted
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     // D-25: Recent file paths persist via localStorage
@@ -26,15 +24,6 @@ function app() {
       }
     },
 
-    setLang(l) {
-      this.lang = l;
-      localStorage.setItem('logtok-lang', l);
-      document.documentElement.dir = l === 'he' ? 'rtl' : 'ltr';
-      document.documentElement.lang = l;
-      // Reload translations from server
-      this.loadTranslations(l);
-    },
-
     toggleTheme() {
       this.theme = this.theme === 'dark' ? 'light' : 'dark';
       // D-26: Do NOT persist to localStorage
@@ -49,22 +38,6 @@ function app() {
     removeRecentFile(path) {
       this.recentFiles = this.recentFiles.filter(function(f) { return f !== path; });
       localStorage.setItem('logtok-recent', JSON.stringify(this.recentFiles));
-    },
-
-    async loadTranslations(lang) {
-      // Translations are inlined in the HTML template by Askama as window.__i18n
-      // On language change, fetch fresh translations from the server
-      try {
-        var resp = await fetch('/api/translations?lang=' + encodeURIComponent(lang));
-        if (resp.ok) {
-          this.t = await resp.json();
-        }
-      } catch (e) {
-        // Fall back to inlined translations
-        if (window.__i18n) {
-          this.t = window.__i18n;
-        }
-      }
     },
 
     // Toast notification
@@ -90,20 +63,9 @@ function app() {
         this.t = window.__i18n;
       }
 
-      // Load stored language translations on startup
-      if (this.lang !== 'en') {
-        this.loadTranslations(this.lang);
-      }
-
       // D-12: Watch OS theme changes in real-time
       window.matchMedia('(prefers-color-scheme: dark)')
         .addEventListener('change', function(e) { this.theme = e.matches ? 'dark' : 'light'; }.bind(this));
-
-      // D-08: Apply stored language direction on load
-      if (this.lang === 'he') {
-        document.documentElement.dir = 'rtl';
-        document.documentElement.lang = 'he';
-      }
 
       // Listen for HTMX responses to show toast banners
       var self = this;

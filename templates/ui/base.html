@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr" x-data="app()" :lang="lang" :dir="lang === 'he' ? 'rtl' : 'ltr'">
+<html lang="en" dir="ltr" x-data="app()">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -52,13 +52,6 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </template>
         </button>
-
-        <select @change="setLang($event.target.value)"
-                class="text-xs font-medium px-2 py-1 rounded-md border bg-transparent cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500"
-                :class="theme === 'light' ? 'border-zinc-200 text-zinc-600' : 'border-zinc-700 text-zinc-400'">
-          <option value="en" :selected="lang === 'en'">EN</option>
-          <option value="he" :selected="lang === 'he'">HE</option>
-        </select>
 
         <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border"
               :class="theme === 'light' ? 'text-zinc-400 border-zinc-200' : 'text-zinc-600 border-zinc-800'">v{{ version }}</span>
