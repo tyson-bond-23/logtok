@@ -111,5 +111,65 @@
     <button @click="toastVisible = false" class="ml-2 opacity-50 hover:opacity-100">&times;</button>
   </div>
 
+  <!-- First-time onboarding overlay -->
+  <div x-show="showOnboarding" x-cloak
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+       class="z-50 flex items-center justify-center p-4"
+       style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
+    <div class="w-full max-w-lg rounded-2xl border p-8 shadow-xl"
+         :class="theme === 'light' ? 'bg-white border-zinc-200' : 'bg-surface-800 border-zinc-700'"
+         @click.outside="dismissOnboarding()">
+
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold tracking-tight mb-2"
+            :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Welcome to logtok</h2>
+        <p class="text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+          Diagnose production logs safely in 3 steps
+        </p>
+      </div>
+
+      <div class="space-y-6">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-bold">1</div>
+          <div>
+            <p class="font-semibold text-sm" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Tokenize</p>
+            <p class="text-sm mt-0.5" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Paste or upload your raw logs. Sensitive data (IPs, emails, keys) gets replaced with safe tokens like <code class="text-brand-400 text-xs font-mono">[IP_001]</code>.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-sm font-bold">2</div>
+          <div>
+            <p class="font-semibold text-sm" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Analyze with AI</p>
+            <p class="text-sm mt-0.5" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Copy the tokenized output and paste it into Claude Code or any AI. The AI diagnoses errors without seeing your real secrets.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-sm font-bold">3</div>
+          <div>
+            <p class="font-semibold text-sm" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Detokenize</p>
+            <p class="text-sm mt-0.5" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Paste the AI's response here. Tokens are replaced with real values so you get a clear, readable diagnosis.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button @click="dismissOnboarding()"
+              class="w-full mt-8 px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+              :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
+        Get Started
+      </button>
+    </div>
+  </div>
+
 </body>
 </html>

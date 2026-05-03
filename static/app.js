@@ -14,6 +14,8 @@ function app() {
     t: {},
     // Config editor mode
     configMode: 'form', // 'form' or 'toml'
+    // First-time onboarding
+    showOnboarding: !localStorage.getItem('logtok-onboarded'),
 
     setTab(name) {
       this.tab = name;
@@ -69,6 +71,11 @@ function app() {
     toast: '',
     toastType: 'success',
     toastVisible: false,
+
+    dismissOnboarding() {
+      this.showOnboarding = false;
+      localStorage.setItem('logtok-onboarded', '1');
+    },
 
     showToast(message, type) {
       this.toast = message;
