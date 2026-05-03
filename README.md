@@ -2,6 +2,29 @@
 
 Tokenize sensitive data out of application logs so they can be safely analyzed by AI for error diagnosis. Claude's results are then de-tokenized back into meaningful, readable output -- without secrets ever leaving your machine.
 
+## Getting Started
+
+```bash
+git clone https://github.com/your-org/logtok.git
+cd logtok
+cargo install --path .
+
+# Verify installation
+logtok --help
+```
+
+Or use the install script:
+
+```bash
+# Unix/macOS
+./install.sh
+
+# Windows PowerShell
+.\install.ps1
+```
+
+After installation, `logtok` is available globally — no compile wait on each run.
+
 ## How It Works
 
 logtok uses a 3-part workflow that keeps sensitive data private:
