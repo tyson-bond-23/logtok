@@ -119,52 +119,71 @@
        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
        class="z-50 flex items-center justify-center p-4"
        style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);">
-    <div class="w-full max-w-lg rounded-2xl border p-8 shadow-xl"
+    <div class="w-full max-w-lg rounded-2xl border shadow-xl"
+         style="padding: 2.5rem 2.5rem 2rem;"
          :class="theme === 'light' ? 'bg-white border-zinc-200' : 'bg-surface-800 border-zinc-700'"
          @click.outside="dismissOnboarding()">
 
-      <div class="text-center mb-8">
-        <h2 class="text-2xl font-bold tracking-tight mb-2"
+      <div class="text-center" style="margin-bottom: 2rem;">
+        <h2 class="text-2xl font-bold tracking-tight"
+            style="margin-bottom: 0.5rem;"
             :class="theme === 'light' ? 'text-zinc-900' : 'text-white'">Welcome to logtok</h2>
         <p class="text-sm" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
           Diagnose production logs safely in 3 steps
         </p>
       </div>
 
-      <div class="space-y-6">
-        <div class="flex items-start gap-4">
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-bold">1</div>
-          <div>
-            <p class="font-semibold text-sm" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Tokenize</p>
-            <p class="text-sm mt-0.5" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-              Paste or upload your raw logs. Sensitive data (IPs, emails, keys) gets replaced with safe tokens like <code class="text-brand-400 text-xs font-mono">[IP_001]</code>.
+      <div style="display:flex;flex-direction:column;gap:0;">
+
+        <!-- Step 1 -->
+        <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;"
+             :class="theme === 'light' ? 'bg-zinc-50' : 'bg-brand-500/[0.04]'">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold" style="font-size:0.9375rem;">1</div>
+          <div style="padding-top:0.125rem;">
+            <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Tokenize</p>
+            <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Paste or upload your raw logs. Sensitive data gets replaced with safe tokens like <code class="text-brand-400 text-xs font-mono">[IP_001]</code>.
             </p>
           </div>
         </div>
 
-        <div class="flex items-start gap-4">
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-sm font-bold">2</div>
-          <div>
-            <p class="font-semibold text-sm" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Analyze with AI</p>
-            <p class="text-sm mt-0.5" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-              Copy the tokenized output and paste it into Claude Code or any AI. The AI diagnoses errors without seeing your real secrets.
+        <!-- Arrow 1→2 -->
+        <div class="flex justify-center" style="padding:0.25rem 0 0.25rem 0.5rem;">
+          <svg width="20" height="24" viewBox="0 0 20 24" fill="none" :stroke="theme === 'light' ? '#a1a1aa' : '#948979'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L10 18"/><path d="M5 14 L10 20 L15 14"/></svg>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold" style="font-size:0.9375rem;">2</div>
+          <div style="padding-top:0.125rem;">
+            <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Analyze with AI</p>
+            <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Copy the tokenized output into Claude Code or any AI. It diagnoses errors without seeing your real secrets.
             </p>
           </div>
         </div>
 
-        <div class="flex items-start gap-4">
-          <div class="flex-shrink-0 w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 text-sm font-bold">3</div>
-          <div>
-            <p class="font-semibold text-sm" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Detokenize</p>
-            <p class="text-sm mt-0.5" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
-              Paste the AI's response here. Tokens are replaced with real values so you get a clear, readable diagnosis.
+        <!-- Arrow 2→3 -->
+        <div class="flex justify-center" style="padding:0.25rem 0 0.25rem 0.5rem;">
+          <svg width="20" height="24" viewBox="0 0 20 24" fill="none" :stroke="theme === 'light' ? '#a1a1aa' : '#948979'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L10 18"/><path d="M5 14 L10 20 L15 14"/></svg>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flex items-start" style="gap:1rem;padding:1rem 0.75rem;border-radius:0.75rem;">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center text-brand-400 font-bold" style="font-size:0.9375rem;">3</div>
+          <div style="padding-top:0.125rem;">
+            <p class="font-semibold" style="font-size:0.9375rem;" :class="theme === 'light' ? 'text-zinc-900' : 'text-zinc-100'">Detokenize</p>
+            <p class="text-sm" style="margin-top:0.25rem;line-height:1.5;" :class="theme === 'light' ? 'text-zinc-500' : 'text-zinc-400'">
+              Paste the AI's response here. Tokens are replaced with real values for a clear, readable diagnosis.
             </p>
           </div>
         </div>
+
       </div>
 
       <button @click="dismissOnboarding()"
-              class="w-full mt-8 px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+              class="w-full bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+              style="margin-top:1.75rem;padding:0.75rem 1.5rem;"
               :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
         Get Started
       </button>
