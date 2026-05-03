@@ -20,7 +20,7 @@ pub async fn static_handler(
                     (header::CONTENT_TYPE, mime),
                     (
                         header::CACHE_CONTROL,
-                        "public, max-age=3600".to_string(),
+                        "no-cache, must-revalidate".to_string(),
                     ),
                 ],
                 file.data.to_vec(),
