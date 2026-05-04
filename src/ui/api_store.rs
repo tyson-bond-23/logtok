@@ -92,12 +92,12 @@ pub async fn api_docs() -> Html<String> {
                  <p class='text-sm text-zinc-500'>Three steps to safe AI log diagnosis</p>\
                </div>\
              </div>\
-             <div style='display:flex;flex-direction:column;gap:0;'>\
+             <div class='rounded-2xl' style='display:flex;flex-direction:column;gap:0;padding:2rem;background:radial-gradient(ellipse at center, rgba(223,208,184,0.08) 0%, transparent 70%);'>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
-                 <div class='flex items-center gap-3 mb-3'>\
-                   <span class='w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
+                 <div class='flex items-center gap-4 mb-3'>\
+                   <span style='width:3rem;height:3rem;font-size:1.25rem;' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
                    <div>\
-                     <h3 class='font-semibold docs-heading'>Tokenize</h3>\
+                     <h3 class='font-semibold docs-heading' style='font-size:1rem;'>Tokenize</h3>\
                      <p class='text-xs text-zinc-500'>Replace sensitive data with safe tokens</p>\
                    </div>\
                  </div>\
@@ -107,14 +107,14 @@ pub async fn api_docs() -> Html<String> {
                    <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
                  </div>\
                </div>\
-               <div class='flex justify-center' style='padding:0.375rem 0 0.375rem 0.75rem;'>\
-                 <svg width='20' height='24' viewBox='0 0 20 24' fill='none' stroke='#948979' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10 2 L10 18'/><path d='M5 14 L10 20 L15 14'/></svg>\
+               <div class='flex justify-center' style='padding:0.5rem 0 0.5rem 1rem;'>\
+                 <svg width='20' height='28' viewBox='0 0 20 28' fill='none' stroke='#948979' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10 2 L10 22'/><path d='M5 18 L10 24 L15 18'/></svg>\
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
-                 <div class='flex items-center gap-3 mb-3'>\
-                   <span class='w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">2</span>\
+                 <div class='flex items-center gap-4 mb-3'>\
+                   <span style='width:3rem;height:3rem;font-size:1.25rem;' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">2</span>\
                    <div>\
-                     <h3 class='font-semibold docs-heading'>Analyze with AI</h3>\
+                     <h3 class='font-semibold docs-heading' style='font-size:1rem;'>Analyze with AI</h3>\
                      <p class='text-xs text-zinc-500'>Send to any AI without exposing secrets</p>\
                    </div>\
                  </div>\
@@ -124,14 +124,14 @@ pub async fn api_docs() -> Html<String> {
                    <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
                  </div>\
                </div>\
-               <div class='flex justify-center' style='padding:0.375rem 0 0.375rem 0.75rem;'>\
-                 <svg width='20' height='24' viewBox='0 0 20 24' fill='none' stroke='#948979' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10 2 L10 18'/><path d='M5 14 L10 20 L15 14'/></svg>\
+               <div class='flex justify-center' style='padding:0.5rem 0 0.5rem 1rem;'>\
+                 <svg width='20' height='28' viewBox='0 0 20 28' fill='none' stroke='#948979' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10 2 L10 22'/><path d='M5 18 L10 24 L15 18'/></svg>\
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
-                 <div class='flex items-center gap-3 mb-3'>\
-                   <span class='w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">3</span>\
+                 <div class='flex items-center gap-4 mb-3'>\
+                   <span style='width:3rem;height:3rem;font-size:1.25rem;' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">3</span>\
                    <div>\
-                     <h3 class='font-semibold docs-heading'>Detokenize</h3>\
+                     <h3 class='font-semibold docs-heading' style='font-size:1rem;'>Detokenize</h3>\
                      <p class='text-xs text-zinc-500'>Restore real values in the AI response</p>\
                    </div>\
                  </div>\
