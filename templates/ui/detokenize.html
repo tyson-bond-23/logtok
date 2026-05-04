@@ -46,8 +46,10 @@
           <span x-show="fileName" class="text-xs font-mono text-brand-400" x-text="fileName" x-transition></span>
         </div>
         <button type="submit"
-                class="px-6 py-2 bg-brand-500 hover:bg-brand-600 text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                style="color: #222831;"
+                class="px-6 py-2 text-white text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                style="background:linear-gradient(135deg,#6366f1,#4f46e5);transition:transform 0.15s ease,box-shadow 0.15s ease;"
+                onmouseenter="this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 12px rgba(99,102,241,0.35)'"
+                onmouseleave="this.style.transform='scale(1)';this.style.boxShadow='none'"
                 :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
           Detokenize
         </button>
