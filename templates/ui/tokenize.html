@@ -88,11 +88,13 @@
           </span>
         </div>
         <button type="submit"
-                class="px-6 py-2 text-white text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                style="background:linear-gradient(135deg,#6366f1,#4f46e5);transition:transform 0.15s ease,box-shadow 0.15s ease;"
-                onmouseenter="this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 12px rgba(99,102,241,0.35)'"
+                class="px-6 py-2 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+                :style="theme === 'light'
+                  ? 'background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;transition:transform 0.15s ease,box-shadow 0.15s ease;'
+                  : 'background:linear-gradient(135deg,#DFD0B8,#c4b8a0);color:#222831;transition:transform 0.15s ease,box-shadow 0.15s ease;'"
+                onmouseenter="this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)'"
                 onmouseleave="this.style.transform='scale(1)';this.style.boxShadow='none'"
-                :class="theme === 'light' ? 'focus:ring-offset-white' : 'focus:ring-offset-surface-900'">
+                :class="theme === 'light' ? 'focus:ring-brand-500 focus:ring-offset-white' : 'focus:ring-zinc-400 focus:ring-offset-surface-900'">
           Tokenize
         </button>
       </div>
