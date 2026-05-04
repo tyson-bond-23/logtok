@@ -95,7 +95,7 @@ pub async fn api_docs() -> Html<String> {
              <div class='rounded-2xl' style='display:flex;flex-direction:column;gap:0;padding:2rem;background:radial-gradient(ellipse at center, rgba(223,208,184,0.08) 0%, transparent 70%);'>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-4 mb-3'>\
-                   <span style='width:3rem;height:3rem;font-size:1.25rem;' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
+                   <span style='width:3rem;height:3rem;font-size:1.25rem;box-shadow:0 0 20px 8px rgba(223,208,184,0.15);' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
                    <div>\
                      <h3 class='font-semibold docs-heading' style='font-size:1rem;'>Tokenize</h3>\
                      <p class='text-xs text-zinc-500'>Replace sensitive data with safe tokens</p>\
@@ -112,7 +112,7 @@ pub async fn api_docs() -> Html<String> {
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-4 mb-3'>\
-                   <span style='width:3rem;height:3rem;font-size:1.25rem;' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">2</span>\
+                   <span style='width:3rem;height:3rem;font-size:1.25rem;box-shadow:0 0 20px 8px rgba(223,208,184,0.15);' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">2</span>\
                    <div>\
                      <h3 class='font-semibold docs-heading' style='font-size:1rem;'>Analyze with AI</h3>\
                      <p class='text-xs text-zinc-500'>Send to any AI without exposing secrets</p>\
@@ -129,7 +129,7 @@ pub async fn api_docs() -> Html<String> {
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-4 mb-3'>\
-                   <span style='width:3rem;height:3rem;font-size:1.25rem;' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">3</span>\
+                   <span style='width:3rem;height:3rem;font-size:1.25rem;box-shadow:0 0 20px 8px rgba(223,208,184,0.15);' class='flex-shrink-0 flex items-center justify-center rounded-xl font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">3</span>\
                    <div>\
                      <h3 class='font-semibold docs-heading' style='font-size:1rem;'>Detokenize</h3>\
                      <p class='text-xs text-zinc-500'>Restore real values in the AI response</p>\
