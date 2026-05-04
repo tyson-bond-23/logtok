@@ -92,37 +92,49 @@ pub async fn api_docs() -> Html<String> {
                  <p class='text-sm text-zinc-500'>Three steps to safe AI log diagnosis</p>\
                </div>\
              </div>\
-             <div class='grid grid-cols-1 md:grid-cols-3 gap-4'>\
+             <div style='display:flex;flex-direction:column;gap:0;'>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
-                 <div class='flex items-center gap-2 mb-3'>\
-                   <span class='w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
-                   <h3 class='font-semibold docs-heading text-sm'>Tokenize</h3>\
+                 <div class='flex items-center gap-3 mb-3'>\
+                   <span class='w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
+                   <div>\
+                     <h3 class='font-semibold docs-heading'>Tokenize</h3>\
+                     <p class='text-xs text-zinc-500'>Replace sensitive data with safe tokens</p>\
+                   </div>\
                  </div>\
-                 <p class='text-xs text-zinc-500 mb-3'>Replace sensitive data with safe tokens</p>\
                  <div class='relative group/copy'>\
                    <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code cursor-pointer' \
                          onclick='navigator.clipboard.writeText(this.textContent.trim());var b=this.nextElementSibling;b.textContent=\"Copied!\";setTimeout(function(){{b.textContent=\"Click to copy\"}},1500)'>logtok tokenize app.log -o safe.log</code>\
                    <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
                  </div>\
                </div>\
+               <div class='flex justify-center' style='padding:0.375rem 0 0.375rem 0.75rem;'>\
+                 <svg width='20' height='24' viewBox='0 0 20 24' fill='none' stroke='#948979' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10 2 L10 18'/><path d='M5 14 L10 20 L15 14'/></svg>\
+               </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
-                 <div class='flex items-center gap-2 mb-3'>\
-                   <span class='w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">2</span>\
-                   <h3 class='font-semibold docs-heading text-sm'>Analyze</h3>\
+                 <div class='flex items-center gap-3 mb-3'>\
+                   <span class='w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">2</span>\
+                   <div>\
+                     <h3 class='font-semibold docs-heading'>Analyze with AI</h3>\
+                     <p class='text-xs text-zinc-500'>Send to any AI without exposing secrets</p>\
+                   </div>\
                  </div>\
-                 <p class='text-xs text-zinc-500 mb-3'>Send to any AI without exposing secrets</p>\
                  <div class='relative group/copy'>\
                    <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code cursor-pointer' \
                          onclick='navigator.clipboard.writeText(this.textContent.trim());var b=this.nextElementSibling;b.textContent=\"Copied!\";setTimeout(function(){{b.textContent=\"Click to copy\"}},1500)'>claude &quot;diagnose errors in safe.log&quot;</code>\
                    <span class='absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] px-2 py-0.5 rounded bg-zinc-700 text-zinc-300 opacity-0 group-hover/copy:opacity-100 transition-opacity pointer-events-none'>Click to copy</span>\
                  </div>\
                </div>\
+               <div class='flex justify-center' style='padding:0.375rem 0 0.375rem 0.75rem;'>\
+                 <svg width='20' height='24' viewBox='0 0 20 24' fill='none' stroke='#948979' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M10 2 L10 18'/><path d='M5 14 L10 20 L15 14'/></svg>\
+               </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
-                 <div class='flex items-center gap-2 mb-3'>\
-                   <span class='w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">3</span>\
-                   <h3 class='font-semibold docs-heading text-sm'>Detokenize</h3>\
+                 <div class='flex items-center gap-3 mb-3'>\
+                   <span class='w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold' :class=\"theme === 'light' ? 'bg-brand-500/20 text-brand-500' : 'bg-[#DFD0B8]/20 text-[#DFD0B8]'\">3</span>\
+                   <div>\
+                     <h3 class='font-semibold docs-heading'>Detokenize</h3>\
+                     <p class='text-xs text-zinc-500'>Restore real values in the AI response</p>\
+                   </div>\
                  </div>\
-                 <p class='text-xs text-zinc-500 mb-3'>Restore real values in the AI response</p>\
                  <div class='relative group/copy'>\
                    <code class='block px-3 py-2 text-xs font-mono rounded-lg bg-zinc-900/60 text-brand-400 docs-code cursor-pointer' \
                          onclick='navigator.clipboard.writeText(this.textContent.trim());var b=this.nextElementSibling;b.textContent=\"Copied!\";setTimeout(function(){{b.textContent=\"Click to copy\"}},1500)'>logtok detokenize -f ai-response.md</code>\
