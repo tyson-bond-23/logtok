@@ -107,10 +107,10 @@ pub async fn api_config_get() -> Html<String> {
            <div class='inline-flex rounded-xl border border-zinc-800 p-1 mb-8 bg-surface-800'>\
              <button type='button' @click=\"configMode = 'form'\" \
                      class='px-4 py-1.5 text-sm font-medium rounded-lg transition-all' \
-                     :class=\"configMode === 'form' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-zinc-200'\">Form View</button>\
+                     :class=\"configMode === 'form' ? (theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]') : 'text-zinc-400 hover:text-zinc-200'\">Form View</button>\
              <button type='button' @click=\"configMode = 'toml'\" \
                      class='px-4 py-1.5 text-sm font-medium rounded-lg transition-all' \
-                     :class=\"configMode === 'toml' ? 'bg-brand-500 text-white' : 'text-zinc-400 hover:text-zinc-200'\">Raw TOML</button>\
+                     :class=\"configMode === 'toml' ? (theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]') : 'text-zinc-400 hover:text-zinc-200'\">Raw TOML</button>\
            </div>\
            <form hx-put='/api/config' hx-target='#config-result' hx-encoding='multipart/form-data'>\
              <div x-show=\"configMode === 'form'\">\
@@ -145,7 +145,11 @@ pub async fn api_config_get() -> Html<String> {
              </div>\
              <div class='mt-6 pt-6 border-t border-zinc-800'>\
                <button type='submit' \
-                       class='inline-flex items-center gap-2 px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-surface-900'>\
+                       class='inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2' \
+                       :class=\"theme === 'light' ? 'bg-brand-500 hover:bg-brand-600 text-white focus:ring-brand-500 focus:ring-offset-white' : 'focus:ring-zinc-400 focus:ring-offset-surface-900'\" \
+                       :style=\"theme === 'light' ? '' : 'background:linear-gradient(135deg,#DFD0B8,#c4b8a0);color:#222831'\" \
+                       onmouseenter=\"this.style.transform='scale(1.03)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)'\" \
+                       onmouseleave=\"this.style.transform='scale(1)';this.style.boxShadow='none'\">\
                  <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'>\
                    <path d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/>\
                    <polyline points='17 21 17 13 7 13 7 21'/><polyline points='7 3 7 8 15 8'/>\

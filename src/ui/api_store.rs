@@ -95,7 +95,7 @@ pub async fn api_docs() -> Html<String> {
              <div class='grid grid-cols-1 md:grid-cols-3 gap-4'>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-2 mb-3'>\
-                   <span class='w-7 h-7 flex items-center justify-center rounded-lg bg-brand-500 text-white text-xs font-bold'>1</span>\
+                   <span class='w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">1</span>\
                    <h3 class='font-semibold docs-heading text-sm'>Tokenize</h3>\
                  </div>\
                  <p class='text-xs text-zinc-500 mb-3'>Replace sensitive data with safe tokens</p>\
@@ -107,7 +107,7 @@ pub async fn api_docs() -> Html<String> {
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-2 mb-3'>\
-                   <span class='w-7 h-7 flex items-center justify-center rounded-lg bg-brand-500 text-white text-xs font-bold'>2</span>\
+                   <span class='w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">2</span>\
                    <h3 class='font-semibold docs-heading text-sm'>Analyze</h3>\
                  </div>\
                  <p class='text-xs text-zinc-500 mb-3'>Send to any AI without exposing secrets</p>\
@@ -119,7 +119,7 @@ pub async fn api_docs() -> Html<String> {
                </div>\
                <div class='rounded-2xl border border-zinc-800 bg-surface-800 p-5 docs-card'>\
                  <div class='flex items-center gap-2 mb-3'>\
-                   <span class='w-7 h-7 flex items-center justify-center rounded-lg bg-brand-500 text-white text-xs font-bold'>3</span>\
+                   <span class='w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold' :class=\"theme === 'light' ? 'bg-brand-500 text-white' : 'bg-[#DFD0B8] text-[#222831]'\">3</span>\
                    <h3 class='font-semibold docs-heading text-sm'>Detokenize</h3>\
                  </div>\
                  <p class='text-xs text-zinc-500 mb-3'>Restore real values in the AI response</p>\
